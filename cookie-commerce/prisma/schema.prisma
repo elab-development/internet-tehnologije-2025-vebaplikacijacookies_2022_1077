@@ -1,14 +1,323 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite" // Za development; u produkciji PostgreSQL
   url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum UserRole {
+  GUEST
+  CUSTOMER
+  MODERATOR
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+// ==========================================
+// MODEL 1: USER (Bazni model za sve korisnike)
+// ==========================================
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         UserRole @default(CUSTOMER)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  preferences   UserPreferences?
+  addresses     Address[]
+  cookieConsent CookieConsent?
+  sessions      Session[]
+  cart          Cart?
+  orders        Order[]
+  viewHistory   ViewHistory[]
+
+  @@index([email])
+  @@map("users")
+}
+
+// ==========================================
+// MODEL 2: PRODUCT (Proizvodi u katalogu)
+// ==========================================
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  price       Float
+  currency    String   @default("RSD")
+  stock       Int      @default(0)
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  
+  // Foreign Keys
+  categoryId String?
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  category     Category?     @relation(fields: [categoryId], references: [id])
+  cartItems    CartItem[]
+  orderItems   OrderItem[]
+  viewHistory  ViewHistory[]
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@map("products")
+}
+
+// ==========================================
+// MODEL 3: CART (Korpa za kupovinu)
+// ==========================================
+
+model Cart {
+  id     String @id @default(cuid())
+  userId String @unique
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id          String   @id @default(cuid())
+  cartId      String
+  productId   String
+  quantity    Int      @default(1)
+  priceAtAdd  Float    // Čuvamo cenu u trenutku dodavanja
+  
+  addedAt DateTime @default(now())
+
+  // Relations
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId]) // Jedan proizvod samo jednom u korpi
+  @@map("cart_items")
+}
+
+// ==========================================
+// MODEL 4: ORDER (Narudžbine)
+// ==========================================
+
+model Order {
+  id          String      @id @default(cuid())
+  userId      String
+  orderNumber String      @unique
+  status      OrderStatus @default(PENDING)
+  totalAmount Float
+  currency    String      @default("RSD")
+  
+  // Shipping info
+  shippingStreet     String
+  shippingCity       String
+  shippingPostalCode String
+  shippingCountry    String
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user    User        @relation(fields: [userId], references: [id])
+  items   OrderItem[]
+  payment Payment?
+
+  @@index([userId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id            String @id @default(cuid())
+  orderId       String
+  productId     String
+  productName   String // Snapshot naziva proizvoda
+  quantity      Int
+  priceAtOrder  Float  // Cena u trenutku naručivanja
+
+  // Relations
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+// ==========================================
+// MODEL 5: SESSION (Sesije korisnika)
+// ==========================================
+
+model Session {
+  id              String   @id @default(cuid())
+  userId          String
+  token           String   @unique
+  rememberToken   String?  @unique // Za "Remember Me" funkcionalnost
+  ipAddress       String?
+  userAgent       String?
+  
+  // Timestamps
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+  lastActivityAt DateTime @default(now())
+
+  // Relations
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  analyticsEvents AnalyticsEvent[]
+
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
+
+// ==========================================
+// POMOĆNI MODELI (za kompletnost)
+// ==========================================
+
+model Category {
+  id          String  @id @default(cuid())
+  name        String
+  slug        String  @unique
+  description String?
+  
+  // Self-referencing za subcategorije
+  parentCategoryId String?
+  parentCategory   Category?  @relation("CategoryToSubcategory", fields: [parentCategoryId], references: [id])
+  subcategories    Category[] @relation("CategoryToSubcategory")
+  
+  products Product[]
+
+  @@map("categories")
+}
+
+model UserPreferences {
+  id                  String  @id @default(cuid())
+  userId              String  @unique
+  theme               String  @default("light")
+  language            String  @default("sr")
+  currency            String  @default("RSD")
+  productsPerPage     Int     @default(12)
+  emailNotifications  Boolean @default(true)
+  smsNotifications    Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model Address {
+  id         String  @id @default(cuid())
+  userId     String
+  type       String  // "billing" ili "shipping"
+  street     String
+  city       String
+  postalCode String
+  country    String
+  isDefault  Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+}
+
+model CookieConsent {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  essential   Boolean  @default(true)
+  functional  Boolean  @default(false)
+  analytics   Boolean  @default(false)
+  marketing   Boolean  @default(false)
+  consentDate DateTime @default(now())
+  lastUpdated DateTime @updatedAt
+  ipAddress   String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("cookie_consents")
+}
+
+model ViewHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  viewedAt  DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([userId])
+  @@index([productId])
+  @@map("view_history")
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  sessionId  String
+  eventType  String   // "page_view", "product_click", "add_to_cart", etc.
+  eventData  String?  // JSON string sa dodatnim podacima
+  pageUrl    String
+  referrer   String?
+  timestamp  DateTime @default(now())
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([eventType])
+  @@map("analytics_events")
+}
+
+model Payment {
+  id               String        @id @default(cuid())
+  orderId          String        @unique
+  transactionId    String        @unique
+  paymentMethod    String
+  amount           Float
+  currency         String        @default("RSD")
+  status           PaymentStatus @default(PENDING)
+  providerResponse String?       // JSON response od payment gateway-a
+  
+  createdAt  DateTime  @default(now())
+  processedAt DateTime?
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
 }
