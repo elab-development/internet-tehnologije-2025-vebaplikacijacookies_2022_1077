@@ -42,6 +42,7 @@ async function main() {
       firstName: 'Admin',
       lastName: 'User',
       role: UserRole.ADMIN,
+      phoneNumber: '+381641234567', // 🆕 NOVO
       preferences: {
         create: {
           theme: 'dark',
@@ -69,6 +70,7 @@ async function main() {
       firstName: 'Marko',
       lastName: 'Marković',
       role: UserRole.CUSTOMER,
+      phoneNumber: '+381657654321',
       preferences: {
         create: {
           theme: 'light',
@@ -107,6 +109,7 @@ async function main() {
       firstName: 'Ana',
       lastName: 'Anić',
       role: UserRole.MODERATOR,
+      phoneNumber: '+381657654321',
       preferences: {
         create: {
           theme: 'light',

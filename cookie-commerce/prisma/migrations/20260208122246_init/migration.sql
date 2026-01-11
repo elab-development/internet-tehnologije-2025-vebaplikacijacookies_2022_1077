@@ -6,6 +6,7 @@ CREATE TABLE "users" (
     "firstName" TEXT NOT NULL,
     "lastName" TEXT NOT NULL,
     "role" TEXT NOT NULL DEFAULT 'CUSTOMER',
+    "phoneNumber" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" DATETIME NOT NULL
 );
