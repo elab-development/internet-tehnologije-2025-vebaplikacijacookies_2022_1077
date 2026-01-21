@@ -1,0 +1,167 @@
+### ===========================================
+### AUTHENTICATION API TESTS
+### ===========================================
+
+### 1. Register new user
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test-final@example.com",
+  "password": "Test1234",
+  "firstName": "Test",
+  "lastName": "User",
+  "phoneNumber": "+381641234567"
+}
+
+### 2. Login
+POST http://localhost:3000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "customer@example.com",
+  "password": "password123",
+  "rememberMe": true
+}
+
+### 3. Get current user
+GET http://localhost:3000/api/auth/me
+
+### 4. Logout
+POST http://localhost:3000/api/auth/logout
+
+### ===========================================
+### PRODUCTS API TESTS
+### ===========================================
+
+### 5. Get all products
+GET http://localhost:3000/api/products?page=1&limit=10
+
+### 6. Get products with filters
+GET http://localhost:3000/api/products?search=laptop&minPrice=50000&maxPrice=200000&sortBy=price&sortOrder=asc
+
+### 7. Get product by ID
+GET http://localhost:3000/api/products/PRODUCT_ID
+
+### 8. Create product (Admin only)
+POST http://localhost:3000/api/products
+Content-Type: application/json
+Cookie: session_token=ADMIN_TOKEN
+
+{
+  "name": "Test Product",
+  "description": "Test description for validation",
+  "price": 9999,
+  "currency": "RSD",
+  "stock": 10,
+  "isActive": true
+}
+
+### 9. Update product (Admin only)
+PUT http://localhost:3000/api/products/PRODUCT_ID
+Content-Type: application/json
+Cookie: session_token=ADMIN_TOKEN
+
+{
+  "price": 8999,
+  "stock": 15
+}
+
+### 10. Delete product (Admin only)
+DELETE http://localhost:3000/api/products/PRODUCT_ID
+Cookie: session_token=ADMIN_TOKEN
+
+### ===========================================
+### CART API TESTS
+### ===========================================
+
+### 11. Get cart
+GET http://localhost:3000/api/cart
+
+### 12. Add item to cart
+POST http://localhost:3000/api/cart/items
+Content-Type: application/json
+
+{
+  "productId": "PRODUCT_ID",
+  "quantity": 2
+}
+
+### 13. Update cart item quantity
+PUT http://localhost:3000/api/cart/items/PRODUCT_ID
+Content-Type: application/json
+
+{
+  "quantity": 3
+}
+
+### 14. Remove item from cart
+DELETE http://localhost:3000/api/cart/items/PRODUCT_ID
+
+### 15. Clear cart
+DELETE http://localhost:3000/api/cart
+
+### 16. Sync cart (after login)
+POST http://localhost:3000/api/cart/sync
+Cookie: session_token=YOUR_TOKEN
+
+### ===========================================
+### CATEGORIES API TESTS
+### ===========================================
+
+### 17. Get all categories
+GET http://localhost:3000/api/categories
+
+### ===========================================
+### COOKIE CONSENT API TESTS
+### ===========================================
+
+### 18. Save cookie consent
+POST http://localhost:3000/api/cookie-consent
+Content-Type: application/json
+Cookie: session_token=YOUR_TOKEN
+
+{
+  "essential": true,
+  "functional": true,
+  "analytics": false,
+  "marketing": false
+}
+
+### 19. Get cookie consent
+GET http://localhost:3000/api/cookie-consent
+Cookie: session_token=YOUR_TOKEN
+
+### ===========================================
+### ERROR HANDLING TESTS
+### ===========================================
+
+### 20. Test validation error (invalid email)
+POST http://localhost:3000/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "password": "Test1234",
+  "firstName": "Test",
+  "lastName": "User"
+}
+
+### 21. Test validation error (negative price)
+POST http://localhost:3000/api/products
+Content-Type: application/json
+Cookie: session_token=ADMIN_TOKEN
+
+{
+  "name": "Test",
+  "description": "Test description",
+  "price": -100,
+  "stock": 10
+}
+
+### 22. Test unauthorized access
+GET http://localhost:3000/api/admin/stats
+
+### 23. Test forbidden access (customer trying admin route)
+GET http://localhost:3000/api/admin/stats
+Cookie: session_token=CUSTOMER_TOKEN

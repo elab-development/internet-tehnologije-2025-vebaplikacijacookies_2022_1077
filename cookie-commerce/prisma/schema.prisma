@@ -99,6 +99,7 @@ model Product {
 
   @@index([categoryId])
   @@index([isActive])
+  @@index([price]) // 🆕 DODAJEMO INDEX za brže pretraživanje po ceni
   @@map("products")
 }
 
