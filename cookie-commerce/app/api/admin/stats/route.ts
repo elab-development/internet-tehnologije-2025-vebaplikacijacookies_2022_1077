@@ -51,14 +51,17 @@ export async function GET(request: NextRequest) {
       }),
 
       // Aktivni korisnici (prijavljeni u poslednjih 7 dana)
-      prisma.session.count({
+      prisma.session.groupBy({
+        by: ['userId'],
         where: {
           lastActivityAt: {
             gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
           },
         },
-        distinct: ['userId'],
-      }),
+        _count: {
+          userId: true,
+        },
+      }).then((result) => result.length),
 
       // Narudžbine na čekanju
       prisma.order.count({
@@ -115,21 +118,39 @@ export async function GET(request: NextRequest) {
 
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
 
-    const ordersByDay = await prisma.order.groupBy({
-      by: ['createdAt'],
+    const orders = await prisma.order.findMany({
       where: {
         createdAt: {
           gte: sevenDaysAgo,
         },
       },
-      _count: {
-        id: true,
-      },
-      _sum: {
+      select: {
+        createdAt: true,
         totalAmount: true,
       },
     });
+
+    // Grupisanje po danima
+    const ordersByDayMap = new Map<string, { count: number; revenue: number }>();
+
+    orders.forEach((order) => {
+      const dateKey = order.createdAt.toISOString().split('T')[0];
+      const existing = ordersByDayMap.get(dateKey) || { count: 0, revenue: 0 };
+      ordersByDayMap.set(dateKey, {
+        count: existing.count + 1,
+        revenue: existing.revenue + order.totalAmount,
+      });
+    });
+
+    const ordersByDay = Array.from(ordersByDayMap.entries())
+      .map(([date, data]) => ({
+        date: new Date(date),
+        count: data.count,
+        revenue: data.revenue,
+      }))
+      .sort((a, b) => b.date.getTime() - a.date.getTime());
 
     // ==========================================
     // ODGOVOR
@@ -147,11 +168,7 @@ export async function GET(request: NextRequest) {
           pendingOrders,
         },
         topProducts: topProductsWithDetails,
-        ordersByDay: ordersByDay.map((day) => ({
-          date: day.createdAt,
-          count: day._count.id,
-          revenue: day._sum.totalAmount || 0,
-        })),
+        ordersByDay,
       },
     });
   } catch (error) {
