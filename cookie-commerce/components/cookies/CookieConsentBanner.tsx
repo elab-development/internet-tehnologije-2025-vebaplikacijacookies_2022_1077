@@ -2,14 +2,15 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { useCookieConsent } from '@/hooks/useCookieConsent';
+import { useCookieConsentContext } from '@/context/CookieConsentContext';
 
 /**
  * Cookie Consent Banner komponenta (GDPR compliant)
- * Prikazuje se pri prvoj poseti ili kada korisnik otvori podešavanja
+ * Prikazuje se pri prvoj poseti ili kada korisnik otvori podešavanja.
+ * Zahteva da aplikacija bude wrap-ovana u <CookieConsentProvider>.
  */
 export const CookieConsentBanner: React.FC = () => {
   const {
@@ -18,18 +19,18 @@ export const CookieConsentBanner: React.FC = () => {
     acceptAll,
     rejectAll,
     savePreferences,
-  } = useCookieConsent();
+  } = useCookieConsentContext();
 
   const [showDetails, setShowDetails] = useState(false);
   const [customPreferences, setCustomPreferences] = useState(preferences);
 
-  // ==========================================
-  // HANDLERS
-  // ==========================================
+  // Kada se preferences promene u kontekstu, osveži lokalni state
+  useEffect(() => {
+    setCustomPreferences(preferences);
+  }, [preferences]);
 
   const handleTogglePreference = (key: keyof typeof customPreferences) => {
     if (key === 'essential') return; // Essential ne može da se isključi
-
     setCustomPreferences((prev) => ({
       ...prev,
       [key]: !prev[key],
@@ -41,10 +42,6 @@ export const CookieConsentBanner: React.FC = () => {
   };
 
   if (!showBanner) return null;
-
-  // ==========================================
-  // RENDER
-  // ==========================================
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
@@ -87,12 +84,12 @@ export const CookieConsentBanner: React.FC = () => {
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
               <p className="text-sm text-gray-700">
-                Prihvatanjem svih kolačića omogućavate nam da personalizujemo sadržaj,
-                analiziramo saobraćaj i pružimo vam najbolje moguće iskustvo.
+                Prihvatanjem svih kolačića omogućavate nam da personalizujemo
+                sadržaj, analiziramo saobraćaj i pružimo vam najbolje moguće
+                iskustvo.
               </p>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 variant="primary"
@@ -135,8 +132,9 @@ export const CookieConsentBanner: React.FC = () => {
                     Neophodni kolačići
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Ovi kolačići su neophodni za funkcionisanje sajta i ne mogu se isključiti.
-                    Uključuju autentifikaciju, sigurnost i osnovne funkcionalnosti.
+                    Ovi kolačići su neophodni za funkcionisanje sajta i ne mogu
+                    se isključiti. Uključuju autentifikaciju, sigurnost i
+                    osnovne funkcionalnosti.
                   </p>
                 </div>
                 <div className="ml-4">
@@ -158,7 +156,8 @@ export const CookieConsentBanner: React.FC = () => {
                     Funkcionalni kolačići
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Omogućavaju personalizaciju (jezik, tema, valuta) i pamćenje vaših preferencija.
+                    Omogućavaju personalizaciju (jezik, tema, valuta) i
+                    pamćenje vaših preferencija.
                   </p>
                 </div>
                 <div className="ml-4">
@@ -186,8 +185,8 @@ export const CookieConsentBanner: React.FC = () => {
                     Analitički kolačići
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Pomažu nam da razumemo kako korisnici koriste sajt, koje stranice posećuju
-                    i kako možemo poboljšati iskustvo.
+                    Pomažu nam da razumemo kako korisnici koriste sajt, koje
+                    stranice posećuju i kako možemo poboljšati iskustvo.
                   </p>
                 </div>
                 <div className="ml-4">
@@ -215,8 +214,8 @@ export const CookieConsentBanner: React.FC = () => {
                     Marketing kolačići
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Koriste se za prikazivanje relevantnih reklama i praćenje efikasnosti
-                    marketinških kampanja.
+                    Koriste se za prikazivanje relevantnih reklama i praćenje
+                    efikasnosti marketinških kampanja.
                   </p>
                 </div>
                 <div className="ml-4">
@@ -257,7 +256,6 @@ export const CookieConsentBanner: React.FC = () => {
               </Button>
             </div>
 
-            {/* Privacy Policy Link */}
             <div className="text-center text-sm text-gray-600">
               Pročitajte našu{' '}
               <a

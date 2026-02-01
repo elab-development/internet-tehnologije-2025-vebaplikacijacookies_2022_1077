@@ -5,6 +5,7 @@ import { Inter } from 'next/font/google';
 import { Header } from '@/components/layout/Header';
 import { CookieConsentBanner } from '@/components/cookies/CookieConsentBanner';
 import { CookieSettingsButton } from '@/components/cookies/CookieSettingsButton';
+import { CookieConsentProvider } from '@/context/CookieConsentContext';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -22,12 +23,12 @@ export default function RootLayout({
   return (
     <html lang="sr">
       <body className={inter.className}>
-        <Header />
-        {children}
-        
-        {/* Cookie Consent Components */}
-        <CookieConsentBanner />
-        <CookieSettingsButton />
+        <CookieConsentProvider>
+          <Header />
+          {children}
+          <CookieConsentBanner />
+          <CookieSettingsButton />
+        </CookieConsentProvider>
       </body>
     </html>
   );

@@ -3,14 +3,14 @@
 'use client';
 
 import React from 'react';
-import { useCookieConsent } from '@/hooks/useCookieConsent';
+import { useCookieConsentContext } from '@/context/CookieConsentContext';
 
 /**
- * Floating button za otvaranje cookie podešavanja
- * Prikazuje se nakon što korisnik da consent
+ * Floating dugme za ponovno otvaranje cookie podešavanja.
+ * Vidi se samo ako je korisnik već dao consent (hasConsent = true).
  */
 export const CookieSettingsButton: React.FC = () => {
-  const { hasConsent, openSettings } = useCookieConsent();
+  const { hasConsent, openSettings } = useCookieConsentContext();
 
   if (!hasConsent) return null;
 
@@ -33,7 +33,7 @@ export const CookieSettingsButton: React.FC = () => {
           d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
         />
       </svg>
-      
+
       {/* Tooltip */}
       <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
         Podešavanja kolačića

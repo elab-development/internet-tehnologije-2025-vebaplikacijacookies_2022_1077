@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 export interface CookieConsentPreferences {
-  essential: boolean; // Uvek true, ne može se isključiti
+  essential: boolean;
   functional: boolean;
   analytics: boolean;
   marketing: boolean;

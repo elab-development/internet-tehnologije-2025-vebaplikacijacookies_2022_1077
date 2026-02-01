@@ -1,64 +1,18 @@
 // components/ui/Input.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useId } from 'react';
 import { cn } from '@/lib/utils/cn';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  /**
-   * Label tekst
-   */
   label?: string;
-  
-  /**
-   * Error poruka
-   */
   error?: string;
-  
-  /**
-   * Helper tekst ispod inputa
-   */
   helperText?: string;
-  
-  /**
-   * Ikonica sa leve strane
-   */
   leftIcon?: React.ReactNode;
-  
-  /**
-   * Ikonica sa desne strane
-   */
   rightIcon?: React.ReactNode;
-  
-  /**
-   * Da li je input obavezan
-   */
   required?: boolean;
-  
-  /**
-   * Full width input
-   */
   fullWidth?: boolean;
 }
 
-/**
- * Reusable Input komponenta sa validacijom
- * 
- * @example
- * <Input
- *   label="Email"
- *   type="email"
- *   placeholder="primer@email.com"
- *   error={errors.email}
- *   required
- * />
- * 
- * @example
- * <Input
- *   label="Pretraga"
- *   leftIcon={<SearchIcon />}
- *   placeholder="Pretraži proizvode..."
- * />
- */
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {
@@ -77,12 +31,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ref
   ) => {
     const [isFocused, setIsFocused] = useState(false);
-    const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+    const reactId = useId();
+    const inputId = id || reactId; // ✅ stabilan ID za SSR + client
 
-    // ==========================================
-    // STILOVI
-    // ==========================================
-    
     const containerStyles = cn(
       'flex flex-col gap-1.5',
       fullWidth && 'w-full'
@@ -124,7 +75,6 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div className={containerStyles}>
-        {/* Label */}
         {label && (
           <label htmlFor={inputId} className={labelStyles}>
             {label}
@@ -132,29 +82,30 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </label>
         )}
 
-        {/* Input wrapper */}
         <div className={inputWrapperStyles}>
-          {/* Left icon */}
           {leftIcon && <div className={leftIconStyles}>{leftIcon}</div>}
 
-          {/* Input field */}
           <input
             ref={ref}
             id={inputId}
             type={type}
             className={inputStyles}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
+            onFocus={(e) => {
+              setIsFocused(true);
+              props.onFocus?.(e);
+            }}
+            onBlur={(e) => {
+              setIsFocused(false);
+              props.onBlur?.(e);
+            }}
             aria-invalid={!!error}
             aria-describedby={error ? `${inputId}-error` : undefined}
             {...props}
           />
 
-          {/* Right icon */}
           {rightIcon && <div className={rightIconStyles}>{rightIcon}</div>}
         </div>
 
-        {/* Error message or helper text */}
         {(error || helperText) && (
           <p
             id={error ? `${inputId}-error` : undefined}
