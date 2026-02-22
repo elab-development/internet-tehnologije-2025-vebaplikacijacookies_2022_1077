@@ -6,8 +6,16 @@ import { getCookie, deleteCookie, COOKIE_NAMES } from '@/lib/auth/cookies';
 import { verifyToken } from '@/lib/auth/jwt';
 
 /**
- * POST /api/auth/logout
- * Odjava korisnika i brisanje sesije
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Odjava korisnika
+ *     tags: [Authentication]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Uspešna odjava
  */
 export async function POST(request: NextRequest) {
   try {

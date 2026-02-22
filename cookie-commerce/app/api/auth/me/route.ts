@@ -6,8 +6,27 @@ import { getCookie, COOKIE_NAMES } from '@/lib/auth/cookies';
 import { verifyToken } from '@/lib/auth/jwt';
 
 /**
- * GET /api/auth/me
- * Vraća podatke o trenutno prijavljenom korisniku
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Vraća podatke trenutno prijavljenog korisnika
+ *     tags: [Authentication]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Podaci korisnika
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Nije prijavljen
  */
 export async function GET(request: NextRequest) {
   try {

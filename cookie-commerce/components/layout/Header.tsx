@@ -34,6 +34,13 @@ export const Header: React.FC = () => {
             <Link href="/products" className="text-gray-700 hover:text-blue-600 transition-colors">
               Proizvodi
             </Link>
+
+            <Link
+            href="/api-docs"
+            className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+            >
+             API Docs
+            </Link>
             
             {/* Admin Link */}
             {isAdmin && (
