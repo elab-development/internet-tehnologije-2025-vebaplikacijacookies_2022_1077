@@ -68,7 +68,7 @@ export const PERMISSIONS = {
  * Proverava da li korisnik ima određenu permisiju
  */
 export function hasPermission(role: UserRole, permission: string): boolean {
-  const rolePermissions = PERMISSIONS[role] || [];
+  const rolePermissions: readonly string[] = PERMISSIONS[role] || [];
 
   // Super admin ima sve permisije
   if (rolePermissions.includes('*')) {
