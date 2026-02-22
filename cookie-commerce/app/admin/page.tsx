@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
+import { SalesChart } from '@/components/analytics/SalesChart';
 
 interface DashboardStats {
   overview: {
@@ -351,45 +352,18 @@ export default function AdminDashboardPage() {
             </CardBody>
           </Card>
 
-          {/* Recent Orders by Day */}
-          <Card variant="bordered" padding="lg">
+          {/* Vizualizacija - Google Charts */}
+          <Card variant="bordered" padding="lg" className="lg:col-span-2">
             <CardHeader>
               <h2 className="text-xl font-bold text-gray-900">
-                Narudžbine (poslednjih 7 dana)
+                Grafički prikaz prodaje
               </h2>
               <p className="text-sm text-gray-600 mt-1">
-                Dnevni pregled
+                Odnos broja narudžbina i ostvarenog prihoda
               </p>
             </CardHeader>
             <CardBody>
-              <div className="space-y-3">
-                {stats.ordersByDay.length === 0 ? (
-                  <p className="text-gray-500 text-center py-8">
-                    Nema narudžbina u poslednjih 7 dana
-                  </p>
-                ) : (
-                  stats.ordersByDay.map((day, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {formatDate(day.date)}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {day.count} {day.count === 1 ? 'narudžbina' : 'narudžbina'}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold text-gray-900">
-                          {formatPrice(day.revenue)}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+              <SalesChart data={stats.ordersByDay} />
             </CardBody>
           </Card>
         </div>
