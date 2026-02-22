@@ -1,11 +1,13 @@
+// app/(shop)/profile/page.tsx
+
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { ProfileForm } from '@/components/profile/ProfileForm';
 import { Button } from '@/components/ui/Button';
-// Ovde bi išli importi za AddressManager i PreferencesForm (ostavićemo placeholder za sada)
+import { Input } from '@/components/ui/Input';
 
 export default function ProfilePage() {
   const { user, isLoading, logout } = useAuth();
@@ -22,8 +24,9 @@ export default function ProfilePage() {
 
   const tabs = [
     { id: 'profile', label: 'Lični podaci' },
+    { id: 'password', label: 'Lozinka' },
     { id: 'addresses', label: 'Adrese' },
-    { id: 'orders', label: 'Istorija narudžbina' },
+    { id: 'orders', label: 'Narudžbine' },
     { id: 'settings', label: 'Podešavanja' },
     { id: 'privacy', label: 'Privatnost (GDPR)' },
   ];
@@ -35,7 +38,6 @@ export default function ProfilePage() {
       const data = await res.json();
 
       if (data.success) {
-        // Kreiraj Blob i link za download
         const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -120,53 +122,10 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {activeTab === 'addresses' && (
-              <div className="text-center py-8 text-gray-500">
-                Adresar će biti implementiran u narednoj fazi.
-                {/* <AddressManager /> */}
-              </div>
-            )}
-
-            {activeTab === 'orders' && (
-              <div className="text-center py-8 text-gray-500">
-                <p>Nema nedavnih narudžbina.</p>
-                <button
-                  onClick={() => router.push('/products')}
-                  className="mt-4 text-blue-600 hover:underline"
-                >
-                  Započnite kupovinu
-                </button>
-              </div>
-            )}
-
-            {activeTab === 'settings' && (
-              <div className="space-y-6 max-w-md">
-                <h2 className="text-xl font-semibold mb-4">Podešavanja aplikacije</h2>
-
-                {/* Theme Selector */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tema</label>
-                  <select className="w-full border-gray-300 rounded-lg shadow-sm">
-                    <option value="light">Svetla</option>
-                    <option value="dark">Tamna</option>
-                    <option value="system">Sistemska</option>
-                  </select>
-                </div>
-
-                {/* Language Selector */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Jezik</label>
-                  <select className="w-full border-gray-300 rounded-lg shadow-sm">
-                    <option value="sr">Srpski</option>
-                    <option value="en">English</option>
-                  </select>
-                </div>
-
-                <Button variant="outline" onClick={() => alert('Podešavanja sačuvana')}>
-                  Sačuvaj podešavanja
-                </Button>
-              </div>
-            )}
+            {activeTab === 'password' && <PasswordChangeSection />}
+            {activeTab === 'addresses' && <AddressesSection />}
+            {activeTab === 'orders' && <OrdersSection />}
+            {activeTab === 'settings' && <SettingsSection />}
 
             {activeTab === 'privacy' && (
               <div className="space-y-8 max-w-2xl">
@@ -175,11 +134,7 @@ export default function ProfilePage() {
                   <p className="text-gray-600 mb-4">
                     Preuzmite kopiju svih vaših ličnih podataka koje čuvamo, uključujući istoriju narudžbina, adrese i aktivnosti.
                   </p>
-                  <Button
-                    variant="outline"
-                    onClick={handleExportData}
-                    isLoading={isExporting}
-                  >
+                  <Button variant="outline" onClick={handleExportData} isLoading={isExporting}>
                     Preuzmi moje podatke (JSON)
                   </Button>
                 </div>
@@ -189,11 +144,7 @@ export default function ProfilePage() {
                   <p className="text-gray-600 mb-4">
                     Trajno obrišite svoj nalog i sve povezane podatke. Ova akcija je nepovratna.
                   </p>
-                  <Button
-                    variant="danger"
-                    onClick={handleDeleteAccount}
-                    isLoading={isDeleting}
-                  >
+                  <Button variant="danger" onClick={handleDeleteAccount} isLoading={isDeleting}>
                     Trajno obriši nalog
                   </Button>
                 </div>
@@ -202,6 +153,373 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ============================
+// Password Change Section
+// ============================
+function PasswordChangeSection() {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage('');
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch('/api/user/change-password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setMessage('✅ Lozinka uspešno promenjena!');
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        setMessage(`❌ ${data.error}`);
+      }
+    } catch {
+      setMessage('❌ Došlo je do greške');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="max-w-md">
+      <h2 className="text-xl font-semibold mb-6">Promena lozinke</h2>
+      {message && (
+        <div className="mb-4 p-3 rounded-lg bg-blue-50 text-sm">{message}</div>
+      )}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          label="Trenutna lozinka"
+          type="password"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+          required
+          fullWidth
+        />
+        <Input
+          label="Nova lozinka (min 8 karaktera)"
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          required
+          fullWidth
+        />
+        <Input
+          label="Potvrdi novu lozinku"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          fullWidth
+        />
+        <Button type="submit" variant="primary" isLoading={isSubmitting}>
+          Promeni lozinku
+        </Button>
+      </form>
+    </div>
+  );
+}
+
+// ============================
+// Addresses Section
+// ============================
+function AddressesSection() {
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [newAddr, setNewAddr] = useState({
+    type: 'SHIPPING', street: '', city: '', postalCode: '', country: 'Srbija', isDefault: false,
+  });
+
+  useEffect(() => {
+    fetchAddresses();
+  }, []);
+
+  const fetchAddresses = async () => {
+    try {
+      const res = await fetch('/api/user/addresses', { credentials: 'include' });
+      const data = await res.json();
+      if (data.success) setAddresses(data.data);
+    } catch (err) { console.error(err); }
+    finally { setIsLoading(false); }
+  };
+
+  const handleAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/user/addresses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(newAddr),
+      });
+      const data = await res.json();
+      if (data.success) {
+        fetchAddresses();
+        setShowForm(false);
+        setNewAddr({ type: 'SHIPPING', street: '', city: '', postalCode: '', country: 'Srbija', isDefault: false });
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  if (isLoading) return <p className="text-gray-500">Učitavanje adresa...</p>;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold">Moje adrese</h2>
+        <Button size="sm" variant="outline" onClick={() => setShowForm(!showForm)}>
+          {showForm ? 'Otkaži' : '+ Nova adresa'}
+        </Button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={handleAdd} className="mb-6 p-4 bg-gray-50 rounded-xl border space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tip</label>
+              <select
+                value={newAddr.type}
+                onChange={(e) => setNewAddr({ ...newAddr, type: e.target.value })}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
+              >
+                <option value="SHIPPING">Za dostavu</option>
+                <option value="BILLING">Za naplatu</option>
+              </select>
+            </div>
+            <Input label="Država" value={newAddr.country} onChange={(e) => setNewAddr({ ...newAddr, country: e.target.value })} fullWidth />
+          </div>
+          <Input label="Ulica i broj" value={newAddr.street} onChange={(e) => setNewAddr({ ...newAddr, street: e.target.value })} required fullWidth />
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="Grad" value={newAddr.city} onChange={(e) => setNewAddr({ ...newAddr, city: e.target.value })} required fullWidth />
+            <Input label="Poštanski broj" value={newAddr.postalCode} onChange={(e) => setNewAddr({ ...newAddr, postalCode: e.target.value })} required fullWidth />
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={newAddr.isDefault} onChange={(e) => setNewAddr({ ...newAddr, isDefault: e.target.checked })} />
+            Podrazumevana adresa
+          </label>
+          <Button type="submit" variant="primary" size="sm">Sačuvaj adresu</Button>
+        </form>
+      )}
+
+      {addresses.length === 0 ? (
+        <p className="text-gray-500 text-sm">Nemate sačuvanih adresa.</p>
+      ) : (
+        <div className="space-y-3">
+          {addresses.map((addr: any) => (
+            <div key={addr.id} className="p-4 bg-white border rounded-xl flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${addr.type === 'SHIPPING' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                    {addr.type === 'SHIPPING' ? 'Dostava' : 'Naplata'}
+                  </span>
+                  {addr.isDefault && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Podrazumevana</span>}
+                </div>
+                <p className="text-sm text-gray-900">{addr.street}</p>
+                <p className="text-xs text-gray-500">{addr.postalCode} {addr.city}, {addr.country}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================
+// Orders Section
+// ============================
+function OrdersSection() {
+  const [orders, setOrders] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch('/api/orders', { credentials: 'include' });
+      const data = await res.json();
+      // api/orders je POST-only za kreiranje, treba GET za user orders
+      // Koristimo prazan niz ako GET ne postoji
+      if (data.success && Array.isArray(data.data)) {
+        setOrders(data.data);
+      }
+    } catch (err) { console.error(err); }
+    finally { setIsLoading(false); }
+  };
+
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat('sr-RS', { style: 'currency', currency: 'RSD', minimumFractionDigits: 0 }).format(price);
+
+  if (isLoading) return <p className="text-gray-500">Učitavanje narudžbina...</p>;
+
+  return (
+    <div>
+      <h2 className="text-xl font-semibold mb-6">Istorija narudžbina</h2>
+      {orders.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <p className="text-4xl mb-4">📦</p>
+          <p>Nemate nijednu narudžbinu.</p>
+          <a href="/products" className="text-blue-600 hover:underline text-sm mt-2 inline-block">Započnite kupovinu</a>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {orders.map((order: any) => (
+            <div key={order.id} className="p-4 bg-white border rounded-xl">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-mono font-semibold">{order.orderNumber}</span>
+                <span className={`px-2 py-1 rounded-full text-xs font-bold
+                  ${order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : ''}
+                  ${order.status === 'SHIPPED' ? 'bg-blue-100 text-blue-800' : ''}
+                  ${order.status === 'DELIVERED' ? 'bg-green-100 text-green-800' : ''}
+                  ${order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' : ''}
+                `}>
+                  {order.status}
+                </span>
+              </div>
+              <p className="text-sm text-gray-600">{formatPrice(order.totalAmount)}</p>
+              <p className="text-xs text-gray-400">{new Date(order.createdAt).toLocaleDateString('sr-RS')}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================
+// Settings Section (SK-5)
+// ============================
+function SettingsSection() {
+  const [theme, setTheme] = useState('light');
+  const [language, setLanguage] = useState('sr');
+  const [currency, setCurrency] = useState('RSD');
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState('');
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Učitaj postojeće preferencije
+  useEffect(() => {
+    const fetchPrefs = async () => {
+      try {
+        const res = await fetch('/api/user/preferences', { credentials: 'include' });
+        const data = await res.json();
+        if (data.success && data.data) {
+          setTheme(data.data.theme || 'light');
+          setLanguage(data.data.language || 'sr');
+          setCurrency(data.data.currency || 'RSD');
+        }
+      } catch (err) { console.error(err); }
+      finally { setIsLoaded(true); }
+    };
+    fetchPrefs();
+  }, []);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setMessage('');
+
+    try {
+      const res = await fetch('/api/user/preferences', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ theme, language, currency }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setMessage('✅ Podešavanja sačuvana!');
+        // Primeni temu lokalno
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+        localStorage.setItem('theme', theme);
+        localStorage.setItem('language', language);
+        localStorage.setItem('currency', currency);
+      } else {
+        setMessage('❌ Greška pri čuvanju');
+      }
+    } catch {
+      setMessage('❌ Došlo je do greške');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (!isLoaded) return <p className="text-gray-500">Učitavanje podešavanja...</p>;
+
+  return (
+    <div className="space-y-6 max-w-md">
+      <h2 className="text-xl font-semibold mb-4">Podešavanja aplikacije</h2>
+
+      {message && (
+        <div className="p-3 rounded-lg bg-blue-50 text-sm">{message}</div>
+      )}
+
+      {/* Theme Selector */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Tema</label>
+        <select
+          value={theme}
+          onChange={(e) => setTheme(e.target.value)}
+          className="w-full border-gray-300 rounded-lg shadow-sm px-3 py-2 border"
+        >
+          <option value="light">Svetla</option>
+          <option value="dark">Tamna</option>
+          <option value="system">Sistemska</option>
+        </select>
+      </div>
+
+      {/* Language Selector */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Jezik</label>
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className="w-full border-gray-300 rounded-lg shadow-sm px-3 py-2 border"
+        >
+          <option value="sr">Srpski</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+
+      {/* Currency Selector */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Valuta</label>
+        <select
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value)}
+          className="w-full border-gray-300 rounded-lg shadow-sm px-3 py-2 border"
+        >
+          <option value="RSD">RSD (Srpski dinar)</option>
+          <option value="EUR">EUR (Evro)</option>
+          <option value="USD">USD (Američki dolar)</option>
+        </select>
+      </div>
+
+      <Button variant="primary" onClick={handleSave} isLoading={isSaving}>
+        Sačuvaj podešavanja
+      </Button>
     </div>
   );
 }

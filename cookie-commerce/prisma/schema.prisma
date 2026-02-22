@@ -66,6 +66,8 @@ model User {
   cart          Cart?
   orders        Order[]
   viewHistory   ViewHistory[]
+  reviews       Review[]
+  wishlist      Wishlist[]
 
   @@index([email])
   @@map("users")
@@ -93,6 +95,8 @@ model Product {
   cartItems   CartItem[]
   orderItems  OrderItem[]
   viewHistory ViewHistory[]
+  reviews     Review[]
+  wishlist    Wishlist[]
 
   @@map("products")
 }
@@ -318,4 +322,64 @@ model Payment {
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("payments")
+}
+
+// ==========================================
+// MODEL: REVIEW (Recenzije proizvoda)
+// ==========================================
+
+model Review {
+  id         String   @id @default(cuid())
+  userId     String
+  productId  String
+  rating     Int      // 1-5
+  comment    String?
+  isApproved Boolean  @default(false) // Moderator mora da odobri
+  isReported Boolean  @default(false) // Prijavljen neprikladan sadržaj
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId]) // Jedna recenzija po korisniku po proizvodu
+  @@index([productId])
+  @@map("reviews")
+}
+
+// ==========================================
+// MODEL: WISHLIST (Lista želja)
+// ==========================================
+
+model Wishlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  addedAt   DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("wishlists")
+}
+
+// ==========================================
+// MODEL: AUDIT LOG (Revizijski tragovi)
+// ==========================================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  // Može biti null za sistemske akcije
+  action    String   // npr. "user.delete", "product.create", "review.moderate"
+  target    String?  // ID entiteta nad kojim je akcija izvršena
+  details   String?  // JSON string sa detaljima
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }

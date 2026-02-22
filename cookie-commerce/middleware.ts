@@ -3,21 +3,31 @@ import { verifyToken } from '@/lib/auth/jwt';
 import { COOKIE_NAMES } from '@/lib/auth/cookies';
 import { checkRateLimit } from '@/lib/security/rate-limit';
 
-// Rute koje zahtevaju autentifikaciju
+// Rute koje zahtevaju autentifikaciju (bilo koji prijavljen korisnik)
 const protectedRoutes = [
   '/api/user',
   '/api/cart/sync',
   '/api/orders',
+  '/api/wishlist',
+  '/api/reviews',   // POST/PUT/DELETE zahtevaju auth (GET je javan)
   '/profile',
-  '/checkout'
+  '/checkout',
+  '/wishlist'
 ];
 
-// Rute koje zahtevaju admin prava
+// Rute koje zahtevaju MODERATOR ili višu ulogu
+const moderatorRoutes = [
+  '/api/moderator',
+  '/moderator'
+];
+
+// Rute koje zahtevaju ADMIN ili višu ulogu
 const adminRoutes = [
   '/api/admin',
-  '/api/products', // POST, PUT, DELETE
   '/admin'
 ];
+// Napomena: /api/products mutacije (POST, PUT, DELETE) se proveravaju posebno
+// kroz isProductMutation. GET je javan za sve korisnike.
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -76,30 +86,43 @@ export async function middleware(request: NextRequest) {
   }
 
   // ==========================================
-  // 4. AUTHENTICATION & AUTHORIZATION
+  // 4. AUTHENTICATION & AUTHORIZATION (3 nivoa)
   // ==========================================
 
-  // Provera zaštićenih ruta
+  // Determiniši nivo pristupa
   const isProtected = protectedRoutes.some(route => path.startsWith(route));
+  const isModeratorRoute = moderatorRoutes.some(route => path.startsWith(route));
   const isAdminRoute = adminRoutes.some(route => path.startsWith(route));
-
-  // Specijalan slučaj za products API: GET je javan, ostalo je Admin
   const isProductMutation = path.startsWith('/api/products') && request.method !== 'GET';
 
-  if (isProtected || isAdminRoute || isProductMutation) {
+  // Specijalna provera: /api/reviews GET je javan, mutacije zahtevaju auth
+  const isReviewsRead = path.startsWith('/api/reviews') && request.method === 'GET';
+
+  const requiresAuth = (isProtected && !isReviewsRead) || isModeratorRoute || isAdminRoute || isProductMutation;
+
+  if (requiresAuth) {
     const token = request.cookies.get(COOKIE_NAMES.SESSION_TOKEN)?.value;
     const payload = token ? verifyToken(token) : null;
 
     if (!payload) {
-      // Ako je API poziv, vrati 401 JSON
       if (path.startsWith('/api')) {
         return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
       }
-      // Ako je stranica, preusmeri na login
       return NextResponse.redirect(new URL('/login', request.url));
     }
 
-    // Provera Admin prava
+    // Provera MODERATOR prava (MODERATOR, ADMIN, SUPER_ADMIN)
+    if (isModeratorRoute) {
+      const modRoles = ['MODERATOR', 'ADMIN', 'SUPER_ADMIN'];
+      if (!modRoles.includes(payload.role)) {
+        if (path.startsWith('/api')) {
+          return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+        }
+        return NextResponse.redirect(new URL('/', request.url));
+      }
+    }
+
+    // Provera ADMIN prava (ADMIN, SUPER_ADMIN)
     if ((isAdminRoute || isProductMutation) && payload.role !== 'ADMIN' && payload.role !== 'SUPER_ADMIN') {
       if (path.startsWith('/api')) {
         return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
