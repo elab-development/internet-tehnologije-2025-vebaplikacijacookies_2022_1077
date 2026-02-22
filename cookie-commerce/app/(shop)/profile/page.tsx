@@ -11,6 +11,8 @@ export default function ProfilePage() {
   const { user, isLoading, logout } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('profile');
+  const [isExporting, setIsExporting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (isLoading) return <div className="p-8 text-center">Učitavanje...</div>;
   if (!user) {
@@ -23,7 +25,56 @@ export default function ProfilePage() {
     { id: 'addresses', label: 'Adrese' },
     { id: 'orders', label: 'Istorija narudžbina' },
     { id: 'settings', label: 'Podešavanja' },
+    { id: 'privacy', label: 'Privatnost (GDPR)' },
   ];
+
+  const handleExportData = async () => {
+    try {
+      setIsExporting(true);
+      const res = await fetch('/api/user/export-data');
+      const data = await res.json();
+
+      if (data.success) {
+        // Kreiraj Blob i link za download
+        const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cookie-commerce-data-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Greška pri izvozu podataka');
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!confirm('DA LI STE SIGURNI? Ovo će trajno obrisati vaš nalog i sve podatke. Nema povratka!')) return;
+
+    try {
+      setIsDeleting(true);
+      const res = await fetch('/api/user/delete-account', { method: 'DELETE' });
+      const data = await res.json();
+
+      if (data.success) {
+        alert('Vaš nalog je obrisan. Hvala što ste bili sa nama.');
+        window.location.href = '/';
+      } else {
+        alert(data.error || 'Greška pri brisanju naloga');
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -44,12 +95,12 @@ export default function ProfilePage() {
           </div>
 
           {/* Tabs */}
-          <div className="flex border-b">
+          <div className="flex border-b overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 py-4 text-sm font-medium border-b-2 transition-colors
+                className={`flex-1 py-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap px-2
                   ${activeTab === tab.id
                     ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -114,6 +165,38 @@ export default function ProfilePage() {
                 <Button variant="outline" onClick={() => alert('Podešavanja sačuvana')}>
                   Sačuvaj podešavanja
                 </Button>
+              </div>
+            )}
+
+            {activeTab === 'privacy' && (
+              <div className="space-y-8 max-w-2xl">
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Izvoz podataka</h3>
+                  <p className="text-gray-600 mb-4">
+                    Preuzmite kopiju svih vaših ličnih podataka koje čuvamo, uključujući istoriju narudžbina, adrese i aktivnosti.
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={handleExportData}
+                    isLoading={isExporting}
+                  >
+                    Preuzmi moje podatke (JSON)
+                  </Button>
+                </div>
+
+                <div className="border-t pt-8">
+                  <h3 className="text-lg font-bold text-red-600 mb-2">Brisanje naloga</h3>
+                  <p className="text-gray-600 mb-4">
+                    Trajno obrišite svoj nalog i sve povezane podatke. Ova akcija je nepovratna.
+                  </p>
+                  <Button
+                    variant="danger"
+                    onClick={handleDeleteAccount}
+                    isLoading={isDeleting}
+                  >
+                    Trajno obriši nalog
+                  </Button>
+                </div>
               </div>
             )}
           </div>
