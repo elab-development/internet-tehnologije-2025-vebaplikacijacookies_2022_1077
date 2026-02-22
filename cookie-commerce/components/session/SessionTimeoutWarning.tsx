@@ -11,24 +11,7 @@ export function SessionTimeoutWarning() {
   const [showWarning, setShowWarning] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
-  // Provera svakih 60 sekundi
-  useEffect(() => {
-    if (!user) return;
-
-    const interval = setInterval(checkSessionStatus, 60 * 1000);
-    return () => clearInterval(interval);
-  }, [user]);
-
-  // Countdown timer kada se warning prikaže
-  useEffect(() => {
-    if (showWarning && countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-      return () => clearTimeout(timer);
-    } else if (showWarning && countdown === 0) {
-      handleLogout();
-    }
-  }, [showWarning, countdown]);
-
+  // Mora biti deklarisano pre useEffect-a koji ga koriste (TDZ)
   const checkSessionStatus = async () => {
     try {
       const res = await fetch('/api/auth/session-status');
@@ -44,6 +27,32 @@ export function SessionTimeoutWarning() {
     }
   };
 
+  const handleLogout = async () => {
+    await logout();
+    setShowWarning(false);
+    router.push('/login?reason=timeout');
+  };
+
+  // Provera svakih 60 sekundi
+  useEffect(() => {
+    if (!user) return;
+
+    const interval = setInterval(checkSessionStatus, 60 * 1000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  // Countdown timer kada se warning prikaže
+  useEffect(() => {
+    if (showWarning && countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (showWarning && countdown === 0) {
+      handleLogout();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showWarning, countdown]);
+
   const handleExtendSession = async () => {
     try {
       const res = await fetch('/api/auth/extend-session', { method: 'POST' });
@@ -58,12 +67,6 @@ export function SessionTimeoutWarning() {
     } catch (error) {
       handleLogout();
     }
-  };
-
-  const handleLogout = async () => {
-    await logout();
-    setShowWarning(false);
-    router.push('/login?reason=timeout');
   };
 
   if (!showWarning) return null;
