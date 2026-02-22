@@ -76,30 +76,23 @@ model User {
 
 model Product {
   id          String   @id @default(cuid())
-  name        String
+  name        String   // @db.VarChar(255) -- PostgreSQL only; SQLite koristi TEXT
+  sku         String?  @unique          // <-- NOVO (Dodajemo novu kolonu sa ograničenjem)
   description String
   price       Float
   currency    String   @default("RSD")
   stock       Int      @default(0)
   imageUrl    String?
   isActive    Boolean  @default(true)
-  
-  // Foreign Keys
-  categoryId String?
-  
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  categoryId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  // Relations
-  category     Category?     @relation(fields: [categoryId], references: [id])
-  cartItems    CartItem[]
-  orderItems   OrderItem[]
-  viewHistory  ViewHistory[]
+  category    Category      @relation(fields: [categoryId], references: [id])
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  viewHistory ViewHistory[]
 
-  @@index([categoryId])
-  @@index([isActive])
-  @@index([price]) // 🆕 DODAJEMO INDEX za brže pretraživanje po ceni
   @@map("products")
 }
 
