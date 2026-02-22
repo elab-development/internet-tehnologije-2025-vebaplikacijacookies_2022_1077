@@ -77,7 +77,7 @@ export function deleteCookie(name: string): string {
  */
 export function parseCookies(request: NextRequest): Record<string, string> {
   const cookieHeader = request.headers.get('cookie') || '';
-  return parse(cookieHeader);
+  return parse(cookieHeader) as Record<string, string>;
 }
 
 /**
