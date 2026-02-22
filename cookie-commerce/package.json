@@ -6,8 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "test": "echo \"Tests will be added in commit 8\" && exit 0",
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "npx prisma migrate reset --force"
   },
