@@ -1,8 +1,8 @@
 'use client';
 
-import { useAnalytics } from '@/hooks/useAnalytics';
+import { usePageViewTracking } from '@/hooks/useAnalytics';
 
-export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
-  useAnalytics(); // Inicijalizuje page_view tracking
-  return <>{children}</>;
+export function AnalyticsProvider() {
+  usePageViewTracking();
+  return null;
 }

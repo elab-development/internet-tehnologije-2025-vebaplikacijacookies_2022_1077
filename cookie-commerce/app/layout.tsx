@@ -2,6 +2,7 @@
 
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import { Suspense } from 'react';
 import { Header } from '@/components/layout/Header';
 import { CookieConsentBanner } from '@/components/cookies/CookieConsentBanner';
 import { CookieSettingsButton } from '@/components/cookies/CookieSettingsButton';
@@ -27,9 +28,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <CookieConsentProvider>
           <Header />
-          <AnalyticsProvider>
-            {children}
-          </AnalyticsProvider>
+          <Suspense fallback={null}>
+            <AnalyticsProvider />
+          </Suspense>
+          {children}
           <CookieConsentBanner />
           <CookieSettingsButton />
           <SessionTimeoutWarning />

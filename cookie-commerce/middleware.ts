@@ -88,7 +88,7 @@ export async function middleware(request: NextRequest) {
 
   if (isProtected || isAdminRoute || isProductMutation) {
     const token = request.cookies.get(COOKIE_NAMES.SESSION_TOKEN)?.value;
-    const payload = verifyToken(token);
+    const payload = token ? verifyToken(token) : null;
 
     if (!payload) {
       // Ako je API poziv, vrati 401 JSON
