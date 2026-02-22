@@ -33,6 +33,9 @@
 - **Autentifikacija:** JWT (HttpOnly cookies)
 - **DevOps:** Docker, GitHub Actions
 - **Testing:** Jest, React Testing Library
+- **Eksterni API-ji:**
+  - Google Charts API (Vizualizacija podataka)
+  - OpenWeatherMap API (Meteorološki podaci)
 
 ---
 
