@@ -10,10 +10,10 @@ import { requireAdmin, authenticate } from '@/lib/auth/middleware';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // ==========================================
     // DOBIJANJE PROIZVODA
@@ -46,7 +46,7 @@ export async function GET(
     // Gosti ne mogu videti neaktivne proizvode
     if (!product.isActive) {
       const { user } = await authenticate(request);
-      
+
       if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
         return NextResponse.json(
           {
@@ -121,7 +121,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // ==========================================
@@ -131,7 +131,7 @@ export async function PUT(
     const authError = await requireAdmin(request);
     if (authError) return authError;
 
-    const { id } = params;
+    const { id } = await params;
 
     // ==========================================
     // PROVERA DA LI PROIZVOD POSTOJI
@@ -228,7 +228,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // ==========================================
@@ -238,7 +238,7 @@ export async function DELETE(
     const authError = await requireAdmin(request);
     if (authError) return authError;
 
-    const { id } = params;
+    const { id } = await params;
 
     // ==========================================
     // PROVERA DA LI PROIZVOD POSTOJI
