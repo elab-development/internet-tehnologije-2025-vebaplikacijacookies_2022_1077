@@ -35,6 +35,7 @@ export const CartItem: React.FC<CartItemProps> = ({
   const handleQuantityChange = async (newQuantity: number) => {
     if (newQuantity < 1) return;
     if (newQuantity > product.stock) {
+      // eslint-disable-next-line no-alert
       alert(`Dostupno samo ${product.stock} komada`);
       return;
     }
@@ -49,6 +50,7 @@ export const CartItem: React.FC<CartItemProps> = ({
   };
 
   const handleRemove = async () => {
+    // eslint-disable-next-line no-alert
     if (!confirm('Da li ste sigurni da želite da uklonite ovaj proizvod iz korpe?')) {
       return;
     }

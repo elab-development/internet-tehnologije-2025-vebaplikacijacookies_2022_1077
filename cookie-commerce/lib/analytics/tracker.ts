@@ -1,5 +1,6 @@
 export async function trackEvent(
   eventType: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   eventData?: any
 ) {
   try {
