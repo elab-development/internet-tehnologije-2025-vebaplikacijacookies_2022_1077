@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite" // Za development; u produkciji PostgreSQL
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -46,13 +46,14 @@ model User {
   id           String   @id @default(cuid())
   email        String   @unique
   passwordHash String
-  firstName    String
+  firstName    String   @db.VarChar(50)
   lastName     String
   role         UserRole @default(CUSTOMER)
 
-    //NOVO POLJE - dodajemo telefon
+  // NOVO POLJE - dodajemo telefon i datum rodjenja
   phoneNumber  String?  // Opciono polje
-  
+  dateOfBirth  DateTime? // <-- Dodajemo kolonu
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -76,7 +77,7 @@ model User {
 
 model Product {
   id          String   @id @default(cuid())
-  name        String   // @db.VarChar(255) -- PostgreSQL only; SQLite koristi TEXT
+  name        String   @db.VarChar(255)
   sku         String?  @unique          // <-- NOVO (Dodajemo novu kolonu sa ograničenjem)
   description String
   price       Float
@@ -187,7 +188,7 @@ model Session {
   id              String   @id @default(cuid())
   userId          String
   token           String   @unique
-  rememberToken   String?  @unique // Za "Remember Me" funkcionalnost
+  // Obrisana kolona rememberToken  String?  @unique // Za "Remember Me" funkcionalnost
   ipAddress       String?
   userAgent       String?
   

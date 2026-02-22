@@ -12,7 +12,7 @@ async function main() {
   // 1. BRISANJE POSTOJEĆIH PODATAKA
   // ==========================================
   console.log('🗑  Cleaning existing data...');
-  
+
   await prisma.analyticsEvent.deleteMany();
   await prisma.viewHistory.deleteMany();
   await prisma.payment.deleteMany();
@@ -353,7 +353,7 @@ async function main() {
     data: {
       userId: admin.id,
       token: `session_${admin.id}_${Date.now()}`,
-      rememberToken: `remember_${admin.id}_${Date.now()}`,
+
       ipAddress: '127.0.0.1',
       userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 dana
@@ -423,9 +423,9 @@ async function main() {
         sessionId: customerSession.id,
         eventType: 'add_to_cart',
         pageUrl: `/products/${allProducts[0].id}`,
-        eventData: JSON.stringify({ 
-          productId: allProducts[0].id, 
-          quantity: 1 
+        eventData: JSON.stringify({
+          productId: allProducts[0].id,
+          quantity: 1
         }),
       },
     ],

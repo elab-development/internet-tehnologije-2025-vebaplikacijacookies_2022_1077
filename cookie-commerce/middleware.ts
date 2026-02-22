@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
   if (path.startsWith('/api')) {
     // Stroži limit za auth rute (Login/Register)
     const isAuthRoute = path.startsWith('/api/auth');
-    const limit = isAuthRoute ? 10 : 100; // 10 zahteva/min za auth, 100 za ostalo
+    const limit = isAuthRoute ? 30 : 100; // 30 zahteva/min za auth, 100 za ostalo
 
     const rateLimit = checkRateLimit(ip, limit, 60000); // 1 minut prozor
 

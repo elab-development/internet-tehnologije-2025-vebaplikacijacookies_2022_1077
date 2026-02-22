@@ -129,9 +129,6 @@ export async function POST(request: NextRequest) {
       data: {
         userId: user.id,
         token: `session_${user.id}_${Date.now()}_${Math.random()}`,
-        rememberToken: rememberMe
-          ? `remember_${user.id}_${Date.now()}_${Math.random()}`
-          : null,
         ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
         userAgent: request.headers.get('user-agent') || 'unknown',
         expiresAt: sessionExpiresAt,

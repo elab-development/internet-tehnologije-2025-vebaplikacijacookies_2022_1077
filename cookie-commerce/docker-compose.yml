@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:15-alpine
     container_name: cookie-commerce-db
     restart: unless-stopped
     environment:
@@ -23,23 +23,21 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_WEATHER_API_KEY=bbae24d068f863a6ca19357a76beba78
+        - NEXT_PUBLIC_API_URL=http://localhost:3000
     container_name: cookie-commerce-app
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/cookie_commerce
-      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
-      NEXT_PUBLIC_API_URL: http://localhost:3000
     ports:
       - "3000:3000"
-    volumes:
-      - ./prisma:/app/prisma
-    command: >
-      sh -c "npx prisma migrate deploy &&
-             npx prisma db seed &&
-             node server.js"
+    environment:
+      # URL gađa ime servisa "db" unutar Docker mreže
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/cookie_commerce?schema=public
+      - JWT_SECRET=${JWT_SECRET:-secret-key-123}
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
 
 volumes:
   postgres_data:
