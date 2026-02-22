@@ -25,21 +25,21 @@ services:
       dockerfile: Dockerfile
     container_name: cookie-commerce-app
     restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      DATABASE_URL: "postgresql://postgres:postgres@db:5432/cookie_commerce"
-      JWT_SECRET: "your-super-secret-jwt-key-change-in-production"
-      NEXT_PUBLIC_APP_URL: "http://localhost:3000"
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/cookie_commerce
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./prisma:/app/prisma
     command: >
-      sh -c "
-        npx prisma migrate deploy &&
-        npx prisma db seed &&
-        node server.js
-      "
+      sh -c "npx prisma migrate deploy &&
+             npx prisma db seed &&
+             node server.js"
 
 volumes:
   postgres_data:

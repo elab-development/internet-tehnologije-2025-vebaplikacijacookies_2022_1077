@@ -44,3 +44,18 @@
    ```bash
    git clone [https://github.com/elab-development/internet-tehnologije-2025-vebaplikacijacookies_2022_1077.git](https://github.com/elab-development/internet-tehnologije-2025-vebaplikacijacookies_2022_1077.git)
    cd internet-tehnologije-2025-vebaplikacijacookies_2022_1077/cookie-commerce
+
+   ## 📚 API Dokumentacija
+
+Swagger UI dostupna na: **http://localhost:3000/api-docs**
+
+### Swagger JSON
+
+Raw OpenAPI spec: **http://localhost:3000/api/swagger**
+
+### Testiranje API-ja
+
+Možete koristiti:
+- Swagger UI (browser)
+- `test-all-apis.http` fajl (VS Code REST Client extension)
+- Postman/Insomnia (importuj OpenAPI spec)

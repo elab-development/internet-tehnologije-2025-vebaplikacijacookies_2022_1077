@@ -6,8 +6,15 @@ import { authenticate } from '@/lib/auth/middleware';
 import { parseCartCookie } from '@/lib/cart/cookie-cart';
 
 /**
- * GET /api/cart
- * Vraća korpu korisnika (iz baze ako je prijavljen, iz cookie-a ako nije)
+ * @swagger
+ * /api/cart:
+ *   get:
+ *     summary: Vraća korpu korisnika
+ *     description: Za prijavljene korisnike vraća korpu iz baze, za goste iz cookie-a
+ *     tags: [Cart]
+ *     responses:
+ *       200:
+ *         description: Korpa
  */
 export async function GET(request: NextRequest) {
   try {
@@ -170,8 +177,14 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * DELETE /api/cart
- * Čisti korpu
+ * @swagger
+ * /api/cart:
+ *   delete:
+ *     summary: Čisti korpu
+ *     tags: [Cart]
+ *     responses:
+ *       200:
+ *         description: Korpa očišćena
  */
 export async function DELETE(request: NextRequest) {
   try {

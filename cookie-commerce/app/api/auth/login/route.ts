@@ -11,8 +11,55 @@ import {
 } from '@/lib/auth/cookies';
 
 /**
- * POST /api/auth/login
- * Prijava korisnika sa opcijom "Remember Me"
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Prijava korisnika
+ *     description: Prijavljuje korisnika i vraća session token u HttpOnly cookie-u
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: customer@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: password123
+ *               rememberMe:
+ *                 type: boolean
+ *                 default: false
+ *     responses:
+ *       200:
+ *         description: Uspešna prijava
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Prijava uspešna
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Pogrešan email ili lozinka
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 export async function POST(request: NextRequest) {
   try {

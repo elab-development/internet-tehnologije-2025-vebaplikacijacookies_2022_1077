@@ -12,7 +12,73 @@ import {
 } from '@/lib/utils/validation';
 
 /**
- * GET /api/products
+ * @swagger
+ * /api/products:
+ *   get:
+ *     summary: Vraća listu proizvoda
+ *     tags: [Products]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 12
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: categoryId
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: sortBy
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, price, name]
+ *       - in: query
+ *         name: sortOrder
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *     responses:
+ *       200:
+ *         description: Lista proizvoda
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Product'
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     totalCount:
+ *                       type: integer
+ *                     totalPages:
+ *                       type: integer
  */
 export async function GET(request: NextRequest) {
   try {
@@ -207,7 +273,49 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/products
+ * @swagger
+ * /api/products:
+ *   post:
+ *     summary: Kreira novi proizvod (Admin only)
+ *     tags: [Products]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - description
+ *               - price
+ *               - stock
+ *             properties:
+ *               name:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               price:
+ *                 type: number
+ *               currency:
+ *                 type: string
+ *                 default: RSD
+ *               stock:
+ *                 type: integer
+ *               categoryId:
+ *                 type: string
+ *               imageUrl:
+ *                 type: string
+ *               isActive:
+ *                 type: boolean
+ *     responses:
+ *       201:
+ *         description: Proizvod kreiran
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  */
 export async function POST(request: NextRequest) {
   try {

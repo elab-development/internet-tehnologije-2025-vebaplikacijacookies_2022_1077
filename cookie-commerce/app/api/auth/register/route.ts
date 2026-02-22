@@ -6,8 +6,43 @@ import { hashPassword, validatePasswordStrength } from '@/lib/auth/password';
 import { UserRole } from '@prisma/client';
 
 /**
- * POST /api/auth/register
- * Registracija novog korisnika
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Registracija novog korisnika
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - firstName
+ *               - lastName
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 minLength: 8
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               phoneNumber:
+ *                 type: string
+ *                 nullable: true
+ *     responses:
+ *       201:
+ *         description: Uspešna registracija
+ *       400:
+ *         description: Validaciona greška
+ *       409:
+ *         description: Email već postoji
  */
 export async function POST(request: NextRequest) {
   try {
