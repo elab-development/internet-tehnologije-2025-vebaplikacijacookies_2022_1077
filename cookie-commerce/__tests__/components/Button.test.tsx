@@ -18,10 +18,10 @@ describe('Button Component', () => {
   });
 
   it('shows loading state', () => {
-    render(<Button isLoading>Click me</Button>);
+    const { container } = render(<Button isLoading>Click me</Button>);
     const button = screen.getByRole('button');
     expect(button).toBeDisabled();
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    expect(container.querySelector('.animate-spin')).toBeInTheDocument();
   });
 
   it('applies variant classes', () => {
