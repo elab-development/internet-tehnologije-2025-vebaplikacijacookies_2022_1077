@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
 import { CartItem as CartItemType } from '@/hooks/useCart';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 export interface CartItemProps {
   item: CartItemType;
@@ -23,6 +24,7 @@ export const CartItem: React.FC<CartItemProps> = ({
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
+  const { track } = useAnalytics();
 
   const { product, quantity, priceAtAdd } = item;
 
@@ -35,6 +37,10 @@ export const CartItem: React.FC<CartItemProps> = ({
     if (newQuantity > product.stock) {
       alert(`Dostupno samo ${product.stock} komada`);
       return;
+    }
+
+    if (newQuantity > quantity) {
+      track('add_to_cart', { productId: product.id, quantity: newQuantity - quantity });
     }
 
     setIsUpdating(true);

@@ -6,6 +6,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Card, CardBody, CardFooter } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 export interface Product {
   id: string;
@@ -40,6 +41,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   onViewDetails,
 }) => {
   const isOutOfStock = product.stock === 0;
+  const { track } = useAnalytics();
+
+  const handleViewDetails = () => {
+    track('product_click', { productId: product.id, name: product.name });
+    onViewDetails?.(product.id);
+  };
 
   const formatPrice = (price: number, currency: string) => {
     return new Intl.NumberFormat('sr-RS', {
@@ -117,7 +124,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           variant="outline"
           size="sm"
           fullWidth
-          onClick={() => onViewDetails?.(product.id)}
+          onClick={handleViewDetails}
         >
           Detalji
         </Button>
