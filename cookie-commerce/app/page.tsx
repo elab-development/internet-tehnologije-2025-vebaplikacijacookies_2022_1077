@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
 import { useAuth } from '@/hooks/useAuth';
 import { useProducts } from '@/hooks/useProducts';
+import { RecommendedProducts } from '@/components/products/RecommendedProducts';
 
 export default function HomePage() {
   const router = useRouter();
@@ -103,6 +104,11 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Personalizovane preporuke (Samo za ulogovane) */}
+      <div className="max-w-7xl mx-auto px-4">
+        <RecommendedProducts />
+      </div>
 
       {/* Featured proizvodi */}
       <section className="max-w-7xl mx-auto px-4 py-10">
