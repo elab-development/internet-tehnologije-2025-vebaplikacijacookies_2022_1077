@@ -12,8 +12,8 @@ export async function trackEvent(
 
     if (!consentCookie) return; // Nema pristanka
 
-    const consent = JSON.parse(decodeURIComponent(consentCookie.split('=')[1]));
-    if (!consent.analytics) return; // Korisnik odbio analitiku
+    const consentData = JSON.parse(decodeURIComponent(consentCookie.split('=')[1]));
+    if (!consentData.preferences || !consentData.preferences.analytics) return; // Korisnik odbio analitiku
 
     await fetch('/api/analytics/track', {
       method: 'POST',
