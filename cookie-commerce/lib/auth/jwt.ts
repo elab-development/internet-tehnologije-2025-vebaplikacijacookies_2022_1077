@@ -11,6 +11,7 @@ export interface JWTPayload {
   email: string;
   role: string;
   sessionId?: string;
+  exp?: number;
 }
 
 /**
@@ -23,7 +24,7 @@ export function createToken(
   payload: JWTPayload,
   expiresIn: string = JWT_EXPIRES_IN
 ): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn } as jwt.SignOptions);
 }
 
 /**

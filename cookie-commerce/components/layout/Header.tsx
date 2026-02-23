@@ -19,6 +19,7 @@ export const Header: React.FC = () => {
   };
 
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  const isModerator = user?.role === 'MODERATOR' || isAdmin;
 
   return (
     <header className="bg-white border-b sticky top-0 z-50">
@@ -36,12 +37,12 @@ export const Header: React.FC = () => {
             </Link>
 
             <Link
-            href="/api-docs"
-            className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
+              href="/api-docs"
+              className="text-gray-600 hover:text-gray-900 px-3 py-2 text-sm font-medium"
             >
-             API Docs
+              API Docs
             </Link>
-            
+
             {/* Admin Link */}
             {isAdmin && (
               <Link
@@ -55,10 +56,46 @@ export const Header: React.FC = () => {
                 Admin
               </Link>
             )}
+
+            {/* Moderator Link */}
+            {isModerator && !isAdmin && (
+              <Link
+                href="/moderator"
+                className="text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
+              >
+                ⚙ Moderacija
+              </Link>
+            )}
           </nav>
 
           {/* Actions */}
           <div className="flex items-center gap-4">
+            {/* Profile */}
+            {user && (
+              <button
+                onClick={() => router.push('/profile')}
+                className="p-2 text-gray-700 hover:text-blue-600 transition-colors"
+                title="Moj profil"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </button>
+            )}
+
+            {/* Wishlist */}
+            {user && (
+              <button
+                onClick={() => router.push('/wishlist')}
+                className="p-2 text-gray-700 hover:text-pink-500 transition-colors"
+                title="Lista želja"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              </button>
+            )}
+
             {/* Cart */}
             <button
               onClick={() => router.push('/cart')}

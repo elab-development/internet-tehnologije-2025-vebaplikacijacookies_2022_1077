@@ -10,6 +10,7 @@ export const PERMISSIONS = {
     'products:read',
     'categories:read',
     'cart:manage_own',
+    'reviews:read',
   ],
   CUSTOMER: [
     'products:read',
@@ -19,9 +20,11 @@ export const PERMISSIONS = {
     'orders:read_own',
     'profile:read_own',
     'profile:update_own',
+    'reviews:read',
     'reviews:create',
     'reviews:update_own',
     'reviews:delete_own',
+    'wishlist:manage_own',
   ],
   MODERATOR: [
     'products:read',
@@ -31,10 +34,13 @@ export const PERMISSIONS = {
     'orders:read_own',
     'profile:read_own',
     'profile:update_own',
+    'reviews:read',
     'reviews:create',
     'reviews:update_own',
     'reviews:delete_own',
-    'reviews:moderate', // Može moderirati sve recenzije
+    'reviews:moderate',      // Može moderirati sve recenzije
+    'reviews:delete_any',    // Može brisati bilo čiju recenziju
+    'wishlist:manage_own',
     'analytics:read_basic',
   ],
   ADMIN: [
@@ -55,9 +61,13 @@ export const PERMISSIONS = {
     'users:delete',
     'profile:read_own',
     'profile:update_own',
+    'reviews:read',
     'reviews:moderate',
+    'reviews:delete_any',
+    'wishlist:manage_own',
     'analytics:read_all',
     'settings:update',
+    'audit:read',
   ],
   SUPER_ADMIN: [
     '*', // Sve permisije
@@ -68,7 +78,7 @@ export const PERMISSIONS = {
  * Proverava da li korisnik ima određenu permisiju
  */
 export function hasPermission(role: UserRole, permission: string): boolean {
-  const rolePermissions = PERMISSIONS[role] || [];
+  const rolePermissions: readonly string[] = PERMISSIONS[role] || [];
 
   // Super admin ima sve permisije
   if (rolePermissions.includes('*')) {

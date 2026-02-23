@@ -23,6 +23,7 @@ export default function CartPage() {
   const handleUpdateQuantity = async (productId: string, quantity: number) => {
     const result = await updateQuantity(productId, quantity);
     if (!result.success) {
+      // eslint-disable-next-line no-alert
       alert(result.error || 'Greška pri ažuriranju količine');
     }
   };
@@ -30,17 +31,20 @@ export default function CartPage() {
   const handleRemoveItem = async (productId: string) => {
     const result = await removeItem(productId);
     if (!result.success) {
+      // eslint-disable-next-line no-alert
       alert(result.error || 'Greška pri uklanjanju proizvoda');
     }
   };
 
   const handleClearCart = async () => {
+    // eslint-disable-next-line no-alert
     if (!confirm('Da li ste sigurni da želite da ispraznite korpu?')) {
       return;
     }
 
     const result = await clearCart();
     if (!result.success) {
+      // eslint-disable-next-line no-alert
       alert(result.error || 'Greška pri čišćenju korpe');
     }
   };

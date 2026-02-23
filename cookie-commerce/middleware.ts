@@ -1,126 +1,149 @@
-// middleware.ts (u root folderu projekta)
-
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth/jwt';
 import { COOKIE_NAMES } from '@/lib/auth/cookies';
+import { checkRateLimit } from '@/lib/security/rate-limit';
 
-/**
- * Globalni middleware koji se izvršava pre svih ruta
- * Koristi se za:
- * - Zaštitu admin ruta
- * - Proveru autentifikacije
- * - Automatsko preusmeravanje
- */
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+// Rute koje zahtevaju autentifikaciju (bilo koji prijavljen korisnik)
+const protectedRoutes = [
+  '/api/user',
+  '/api/cart/sync',
+  '/api/orders',
+  '/api/wishlist',
+  '/api/reviews',   // POST/PUT/DELETE zahtevaju auth (GET je javan)
+  '/profile',
+  '/checkout',
+  '/wishlist'
+];
+
+// Rute koje zahtevaju MODERATOR ili višu ulogu
+const moderatorRoutes = [
+  '/api/moderator',
+  '/moderator'
+];
+
+// Rute koje zahtevaju ADMIN ili višu ulogu
+const adminRoutes = [
+  '/api/admin',
+  '/admin'
+];
+// Napomena: /api/products mutacije (POST, PUT, DELETE) se proveravaju posebno
+// kroz isProductMutation. GET je javan za sve korisnike.
+
+export async function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  const ip = request.headers.get('x-forwarded-for') || 'unknown';
 
   // ==========================================
-  // 1. ZAŠTITA ADMIN RUTA
+  // 1. SECURITY HEADERS (Helmet ekvivalent)
   // ==========================================
+  const response = NextResponse.next();
 
-  if (pathname.startsWith('/admin')) {
-    const sessionToken = request.cookies.get(COOKIE_NAMES.SESSION_TOKEN)?.value;
+  response.headers.set('X-DNS-Prefetch-Control', 'on');
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN'); // Clickjacking zaštita
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
 
-    if (!sessionToken) {
-      // Nema tokena - preusmeri na login
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
+  // Content Security Policy (Basic)
+  response.headers.set(
+    'Content-Security-Policy',
+    "default-src 'self'; connect-src 'self' https://api.openweathermap.org; img-src 'self' data: https:; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+  );
+
+  // ==========================================
+  // 2. RATE LIMITING (Samo za API rute)
+  // ==========================================
+  if (path.startsWith('/api')) {
+    // Stroži limit za auth rute (Login/Register)
+    const isAuthRoute = path.startsWith('/api/auth');
+    const limit = isAuthRoute ? 30 : 100; // 30 zahteva/min za auth, 100 za ostalo
+
+    const rateLimit = checkRateLimit(ip, limit, 60000); // 1 minut prozor
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { success: false, error: 'Previše zahteva. Pokušajte kasnije.' },
+        { status: 429, headers: { 'Retry-After': String(rateLimit.retryAfter) } }
+      );
     }
-
-    const payload = verifyToken(sessionToken);
-
-    if (!payload) {
-      // Nevažeći token - preusmeri na login
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    // Provera da li korisnik ima admin ulogu
-    if (payload.role !== 'ADMIN' && payload.role !== 'SUPER_ADMIN') {
-      // Nema dozvolu - preusmeri na home
-      return NextResponse.redirect(new URL('/', request.url));
-    }
-
-    // Admin ima pristup - nastavi
-    return NextResponse.next();
   }
 
   // ==========================================
-  // 2. ZAŠTITA AUTH STRANICA (login/register)
+  // 3. CSRF & ORIGIN CHECK (Za mutacije)
+  // ==========================================
+  if (path.startsWith('/api') && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)) {
+    const origin = request.headers.get('origin');
+    const host = request.headers.get('host');
+
+    // Dozvoli request samo ako Origin odgovara Host-u (ili je null za server-side calls u istom okruženju)
+    if (origin && host && !origin.includes(host)) {
+      return NextResponse.json(
+        { success: false, error: 'CSRF Validation Failed' },
+        { status: 403 }
+      );
+    }
+  }
+
+  // ==========================================
+  // 4. AUTHENTICATION & AUTHORIZATION (3 nivoa)
   // ==========================================
 
-  if (pathname.startsWith('/login') || pathname.startsWith('/register')) {
-    const sessionToken = request.cookies.get(COOKIE_NAMES.SESSION_TOKEN)?.value;
+  // Determiniši nivo pristupa
+  const isProtected = protectedRoutes.some(route => path.startsWith(route));
+  const isModeratorRoute = moderatorRoutes.some(route => path.startsWith(route));
+  const isAdminRoute = adminRoutes.some(route => path.startsWith(route));
+  const isProductMutation = path.startsWith('/api/products') && request.method !== 'GET';
 
-    if (sessionToken) {
-      const payload = verifyToken(sessionToken);
+  // Specijalna provera: /api/reviews GET je javan, mutacije zahtevaju auth
+  const isReviewsRead = path.startsWith('/api/reviews') && request.method === 'GET';
 
-      if (payload) {
-        // Korisnik je već prijavljen - preusmeri na home
+  const requiresAuth = (isProtected && !isReviewsRead) || isModeratorRoute || isAdminRoute || isProductMutation;
+
+  if (requiresAuth) {
+    const token = request.cookies.get(COOKIE_NAMES.SESSION_TOKEN)?.value;
+    const payload = token ? verifyToken(token) : null;
+
+    if (!payload) {
+      if (path.startsWith('/api')) {
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      }
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    // Provera MODERATOR prava (MODERATOR, ADMIN, SUPER_ADMIN)
+    if (isModeratorRoute) {
+      const modRoles = ['MODERATOR', 'ADMIN', 'SUPER_ADMIN'];
+      if (!modRoles.includes(payload.role)) {
+        if (path.startsWith('/api')) {
+          return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+        }
         return NextResponse.redirect(new URL('/', request.url));
       }
     }
 
-    // Nije prijavljen - dozvoli pristup login/register stranicama
-    return NextResponse.next();
-  }
-
-  // ==========================================
-  // 3. ZAŠTITA KORISNIČKIH STRANICA
-  // ==========================================
-
-  if (pathname.startsWith('/profile') || pathname.startsWith('/orders')) {
-    const sessionToken = request.cookies.get(COOKIE_NAMES.SESSION_TOKEN)?.value;
-
-    if (!sessionToken) {
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
+    // Provera ADMIN prava (ADMIN, SUPER_ADMIN)
+    if ((isAdminRoute || isProductMutation) && payload.role !== 'ADMIN' && payload.role !== 'SUPER_ADMIN') {
+      if (path.startsWith('/api')) {
+        return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+      }
+      return NextResponse.redirect(new URL('/', request.url));
     }
-
-    const payload = verifyToken(sessionToken);
-
-    if (!payload) {
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('redirect', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    // Korisnik je prijavljen - nastavi
-    return NextResponse.next();
   }
-
-  // ==========================================
-  // 4. DODAVANJE CUSTOM HEADERA (opciono)
-  // ==========================================
-
-  const response = NextResponse.next();
-
-  // Dodaj security headers
-  response.headers.set('X-Frame-Options', 'DENY');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
   return response;
 }
 
-/**
- * Konfiguracija - definiše na kojim rutama se middleware izvršava
- */
 export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
-     * - public files (images, etc.)
+     * - public folder
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|images|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.svg).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public).*)',
   ],
-   runtime: 'nodejs',
+  runtime: 'nodejs',
 };

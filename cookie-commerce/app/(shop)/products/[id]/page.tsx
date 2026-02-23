@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { RecentlyViewed } from '@/components/products/RecentlyViewed';
+import { ProductReviews } from '@/components/products/ProductReviews';
 import { useCart } from '@/hooks/useCart';
 
 export default function ProductDetailsPage() {
@@ -189,6 +190,9 @@ export default function ProductDetailsPage() {
             </p>
           </div>
         </div>
+
+        {/* Reviews */}
+        <ProductReviews productId={params.id as string} />
 
         {/* Recently Viewed */}
         <RecentlyViewed />

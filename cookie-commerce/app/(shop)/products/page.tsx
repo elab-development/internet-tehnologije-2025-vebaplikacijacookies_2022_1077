@@ -10,9 +10,11 @@ import { ProductCard } from '@/components/products/ProductCard';
 import { Pagination } from '@/components/ui/Pagination';
 import { useProducts } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
+import { useCart } from '@/hooks/useCart';
 
 export default function ProductsPage() {
   const router = useRouter();
+  const { addItem } = useCart();
   const { categories } = useCategories();
   const {
     products,
@@ -75,22 +77,9 @@ export default function ProductsPage() {
 
   const handleAddToCart = async (productId: string) => {
     try {
-      const response = await fetch('/api/cart/items', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ productId, quantity: 1 }),
-      });
-
-      if (response.ok) {
-        alert('Proizvod dodat u korpu!');
-      } else {
-        const data = await response.json();
-        alert(data.error || 'Greška pri dodavanju u korpu');
-      }
+      await addItem(productId, 1);
     } catch (error) {
       console.error('Add to cart error:', error);
-      alert('Došlo je do greške');
     }
   };
 

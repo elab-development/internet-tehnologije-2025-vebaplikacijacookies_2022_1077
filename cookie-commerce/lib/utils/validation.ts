@@ -88,3 +88,22 @@ export function validateSort(
 ): boolean {
   return allowedFields.includes(sortBy);
 }
+
+/**
+ * Validira jačinu lozinke
+ */
+export function validatePasswordStrength(password: string): {
+  isValid: boolean;
+  errors: string[];
+} {
+  const errors: string[] = [];
+
+  if (password.length < 8) errors.push('Lozinka mora imati najmanje 8 karaktera');
+  if (!/[0-9]/.test(password)) errors.push('Lozinka mora sadržati bar jedan broj');
+  if (!/[A-Z]/.test(password)) errors.push('Lozinka mora sadržati bar jedno veliko slovo');
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+}

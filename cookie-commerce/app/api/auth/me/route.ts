@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
           error: 'Niste prijavljeni',
           user: null,
         },
-        { status: 401 }
+        { status: 200 }
       );
     }
 
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
           error: 'Nevažeći token',
           user: null,
         },
-        { status: 401 }
+        { status: 200 }
       );
     }
 

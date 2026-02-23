@@ -2,7 +2,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, isLoading } = useAuth();
@@ -99,7 +99,7 @@ export default function LoginPage() {
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    
+
     // Očisti grešku za to polje
     if (field in errors) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
@@ -210,13 +210,6 @@ export default function LoginPage() {
                   />
                   <span className="text-sm text-gray-700">Zapamti me</span>
                 </label>
-
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
-                >
-                  Zaboravili ste lozinku?
-                </Link>
               </div>
             </CardBody>
 
@@ -271,5 +264,19 @@ export default function LoginPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

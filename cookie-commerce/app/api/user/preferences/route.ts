@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { authenticate } from '@/lib/auth/middleware';
 
+export async function GET(request: NextRequest) {
+  const { user } = await authenticate(request);
+  if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+
+  const preferences = await prisma.userPreferences.findUnique({
+    where: { userId: user.userId },
+  });
+
+  return NextResponse.json({ success: true, data: preferences });
+}
+
 export async function PUT(request: NextRequest) {
   const { user } = await authenticate(request);
   if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
