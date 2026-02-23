@@ -2,7 +2,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -10,6 +10,8 @@ import { Card, CardHeader, CardBody, CardFooter } from '@/components/ui/Card';
 import { useAuth } from '@/hooks/useAuth';
 import { useProducts } from '@/hooks/useProducts';
 import { RecommendedProducts } from '@/components/products/RecommendedProducts';
+import { WeatherWidget } from '@/components/checkout/WeatherWidget';
+import { useABTest } from '@/hooks/useABTest';
 
 export default function HomePage() {
   const router = useRouter();
@@ -22,6 +24,12 @@ export default function HomePage() {
     sortBy: 'createdAt',
     sortOrder: 'desc',
   });
+
+  const [weatherCity, setWeatherCity] = useState('Beograd');
+
+  // A/B testovi — dodeljuje varijantu i postavlja kolačić pri prvoj poseti
+  const { variant: heroCta } = useABTest('hero_cta');
+  const { variant: _productLayout } = useABTest('product_layout');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -43,7 +51,7 @@ export default function HomePage() {
                 size="lg"
                 onClick={() => router.push('/products')}
               >
-                Pregledaj proizvode
+                {heroCta === 'variant_a' ? 'Započni kupovinu 🛒' : 'Pregledaj proizvode'}
               </Button>
 
               {!authLoading && !user && (
@@ -179,6 +187,28 @@ export default function HomePage() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* Vremenska prognoza */}
+      <section className="max-w-7xl mx-auto px-4 pb-12">
+        <div className="bg-gradient-to-r from-sky-50 to-blue-50 rounded-2xl p-6 border border-sky-100">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">☁️ Vremenska prognoza</h2>
+              <p className="text-sm text-gray-600 mt-1">Proverite vreme za planiranje dostave</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={weatherCity}
+                onChange={(e) => setWeatherCity(e.target.value)}
+                placeholder="Unesite grad..."
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-44 focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none"
+              />
+            </div>
+          </div>
+          <WeatherWidget city={weatherCity} />
+        </div>
       </section>
     </div>
   );

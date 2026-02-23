@@ -466,6 +466,21 @@ function SettingsSection() {
     }
   };
 
+  const handleSimulateTimeout = async () => {
+    try {
+      const res = await fetch('/api/auth/simulate-timeout', { method: 'POST', credentials: 'include' });
+      const data = await res.json();
+      if (data.success) {
+        setMessage('⏳ ' + data.message);
+        setTimeout(() => window.location.reload(), 1500); // Reload da bi SessionWarning uhvatio novi token
+      } else {
+        setMessage('❌ ' + data.error);
+      }
+    } catch {
+      setMessage('❌ Greška pri simulaciji');
+    }
+  };
+
   if (!isLoaded) return <p className="text-gray-500">Učitavanje podešavanja...</p>;
 
   return (
@@ -517,9 +532,17 @@ function SettingsSection() {
         </select>
       </div>
 
-      <Button variant="primary" onClick={handleSave} isLoading={isSaving}>
+      <Button variant="primary" onClick={handleSave} isLoading={isSaving} className="w-full mb-4">
         Sačuvaj podešavanja
       </Button>
+
+      <div className="border-t pt-4 mt-8">
+        <h3 className="text-sm font-semibold text-gray-700 mb-2">Testiranje i Debagovanje</h3>
+        <p className="text-xs text-gray-500 mb-3">Samo za razvoj: prebacuje istek sesije na 2 minuta kako bi se prikazao Session Warning.</p>
+        <Button variant="outline" onClick={handleSimulateTimeout} className="w-full text-orange-600 border-orange-200 hover:bg-orange-50">
+          Simuliraj istek sesije (120s)
+        </Button>
+      </div>
     </div>
   );
 }

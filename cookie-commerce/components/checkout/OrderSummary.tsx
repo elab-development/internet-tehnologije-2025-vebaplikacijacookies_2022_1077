@@ -1,6 +1,5 @@
 import React from 'react';
 import { Card } from '@/components/ui/Card';
-import { WeatherWidget } from './WeatherWidget';
 
 interface OrderSummaryProps {
   items: any[];
@@ -8,7 +7,7 @@ interface OrderSummaryProps {
   city?: string;
 }
 
-export function OrderSummary({ items, total, city }: OrderSummaryProps) {
+export function OrderSummary({ items, total }: OrderSummaryProps) {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('sr-RS', { style: 'currency', currency: 'RSD' }).format(price);
   };
@@ -45,9 +44,6 @@ export function OrderSummary({ items, total, city }: OrderSummaryProps) {
           </div>
         </div>
       </Card>
-
-      {/* Weather Widget Integration - Prikazuje se samo ako je grad unet */}
-      {city && city.length > 2 && <WeatherWidget city={city} />}
     </div>
   );
 }

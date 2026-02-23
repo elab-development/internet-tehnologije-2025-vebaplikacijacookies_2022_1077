@@ -13,14 +13,9 @@ export async function getRecommendations(userId: string, limit: number = 4) {
     },
   });
 
-  // Ako nema istorije, vrati najnovije proizvode
+  // Ako nema istorije, ne prikazuj preporuke
   if (viewHistory.length === 0) {
-    return await prisma.product.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-      include: { category: true },
-    });
+    return [];
   }
 
   // 2. Izdvoj kategorije koje korisnika zanimaju

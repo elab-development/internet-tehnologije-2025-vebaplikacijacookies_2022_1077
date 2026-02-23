@@ -48,7 +48,7 @@ export async function middleware(request: NextRequest) {
   // Content Security Policy (Basic)
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+    "default-src 'self'; connect-src 'self' https://api.openweathermap.org; img-src 'self' data: https:; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
   );
 
   // ==========================================

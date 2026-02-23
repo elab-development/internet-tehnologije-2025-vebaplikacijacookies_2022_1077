@@ -2,11 +2,12 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { Card, CardBody, CardFooter } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface Product {
   id: string;
@@ -42,10 +43,34 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const isOutOfStock = product.stock === 0;
   const { track } = useAnalytics();
+  const { user } = useAuth();
+  const [inWishlist, setInWishlist] = useState(false);
+  const [wishLoading, setWishLoading] = useState(false);
 
   const handleViewDetails = () => {
     track('product_click', { productId: product.id, name: product.name });
     onViewDetails?.(product.id);
+  };
+
+  const toggleWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user || wishLoading) return;
+    setWishLoading(true);
+    try {
+      if (inWishlist) {
+        await fetch(`/api/wishlist?productId=${product.id}`, { method: 'DELETE', credentials: 'include' });
+        setInWishlist(false);
+      } else {
+        await fetch('/api/wishlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ productId: product.id }),
+        });
+        setInWishlist(true);
+      }
+    } catch (err) { console.error(err); }
+    finally { setWishLoading(false); }
   };
 
   const formatPrice = (price: number, currency: string) => {
@@ -98,6 +123,20 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <div className="absolute top-2 right-2 bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium">
             Samo {product.stock} kom
           </div>
+        )}
+
+        {/* Wishlist heart button */}
+        {user && (
+          <button
+            onClick={toggleWishlist}
+            disabled={wishLoading}
+            className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-white/90 hover:bg-white shadow flex items-center justify-center transition-all"
+            title={inWishlist ? 'Ukloni iz liste želja' : 'Dodaj u listu želja'}
+          >
+            <svg className={`w-5 h-5 transition-colors ${inWishlist ? 'text-red-500 fill-red-500' : 'text-gray-400'}`} viewBox="0 0 24 24" stroke="currentColor" fill={inWishlist ? 'currentColor' : 'none'} strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </button>
         )}
       </div>
 
