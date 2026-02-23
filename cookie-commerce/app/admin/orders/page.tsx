@@ -78,7 +78,7 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     if (isAdm) fetchOrders(filter);
     else if (!authLoading) setIsLoading(false);
-  }, [user, authLoading, filter]);
+  }, [user, authLoading, filter, isAdm]);
 
   const updateStatus = async (orderId: string, newStatus: string) => {
     if (!confirm(`Promeniti status narudžbine u "${STATUS_CONFIG[newStatus]?.label || newStatus}"?`)) return;
@@ -133,8 +133,8 @@ export default function AdminOrdersPage() {
             key={tab.key}
             onClick={() => setFilter(tab.key)}
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${filter === tab.key
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
           >
             {tab.label} ({tab.count})

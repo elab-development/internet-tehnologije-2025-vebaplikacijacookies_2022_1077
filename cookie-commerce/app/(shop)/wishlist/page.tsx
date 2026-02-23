@@ -102,6 +102,7 @@ export default function WishlistPage() {
                                     onClick={() => router.push(`/products/${item.product.id}`)}
                                 >
                                     {item.product.imageUrl ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
                                         <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Nema slike</div>

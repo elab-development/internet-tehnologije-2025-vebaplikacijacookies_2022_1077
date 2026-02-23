@@ -16,7 +16,7 @@ export async function logAuditAction({
     userId?: string | null;
     action: string;
     target?: string | null;
-    details?: Record<string, any> | null;
+    details?: Record<string, unknown> | null;
     ipAddress?: string | null;
 }) {
     try {

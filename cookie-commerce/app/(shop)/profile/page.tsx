@@ -239,8 +239,19 @@ function PasswordChangeSection() {
 // ============================
 // Addresses Section
 // ============================
+
+interface Address {
+  id: string;
+  type: string;
+  isDefault: boolean;
+  street: string;
+  postalCode: string;
+  city: string;
+  country: string;
+}
+
 function AddressesSection() {
-  const [addresses, setAddresses] = useState<any[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [newAddr, setNewAddr] = useState({
@@ -322,7 +333,7 @@ function AddressesSection() {
         <p className="text-gray-500 text-sm">Nemate sačuvanih adresa.</p>
       ) : (
         <div className="space-y-3">
-          {addresses.map((addr: any) => (
+          {addresses.map((addr) => (
             <div key={addr.id} className="p-4 bg-white border rounded-xl flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -345,8 +356,17 @@ function AddressesSection() {
 // ============================
 // Orders Section
 // ============================
+
+interface Order {
+  id: string;
+  orderNumber: string;
+  status: string;
+  totalAmount: number;
+  createdAt: string;
+}
+
 function OrdersSection() {
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -382,7 +402,7 @@ function OrdersSection() {
         </div>
       ) : (
         <div className="space-y-3">
-          {orders.map((order: any) => (
+          {orders.map((order) => (
             <div key={order.id} className="p-4 bg-white border rounded-xl">
               <div className="flex items-center justify-between mb-2">
                 <span className="font-mono font-semibold">{order.orderNumber}</span>

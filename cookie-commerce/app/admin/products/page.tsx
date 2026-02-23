@@ -1,15 +1,21 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { ProductForm } from '@/components/admin/ProductForm'; // Importujemo formu (sledi)
 
+interface Product {
+  id: string | null;
+  name: string;
+  price: number;
+  stock: number;
+  isActive?: boolean;
+}
+
 export default function AdminProductsPage() {
-  const router = useRouter();
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -29,7 +35,7 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleEdit = (product: any) => {
+  const handleEdit = (product: Product) => {
     setEditingProduct(product);
     // Otvori modal ili preusmeri na stranicu za editovanje
     // Ovde pojednostavljeno - otvaramo formu u istoj stranici
@@ -45,7 +51,7 @@ export default function AdminProductsPage() {
       } else {
         alert('Brisanje nije uspelo. Proverite da li proizvod ima aktivne narudžbine.');
       }
-    } catch (error) {
+    } catch {
       alert('Greška pri brisanju');
     }
   };
@@ -54,7 +60,7 @@ export default function AdminProductsPage() {
     setEditingProduct({ id: null, name: '', price: 0, stock: 0 }); // Prazan objekat
   };
 
-  const handleFormSubmit = async (formData: any) => {
+  const handleFormSubmit = async (formData: Record<string, unknown>) => {
     // Logika za POST (create) ili PUT (update)
     const method = formData.id ? 'PUT' : 'POST';
     const url = formData.id ? `/api/products/${formData.id}` : '/api/products';
@@ -120,7 +126,7 @@ export default function AdminProductsPage() {
               </td>
               <td className="py-2 px-4 border-b text-right space-x-2">
                 <Button size="sm" variant="outline" onClick={() => handleEdit(product)}>Izmeni</Button>
-                <Button size="sm" variant="danger" onClick={() => handleDelete(product.id)}>Obriši</Button>
+                <Button size="sm" variant="danger" onClick={() => handleDelete(product.id!)}>Obriši</Button>
               </td>
             </tr>
           ))}

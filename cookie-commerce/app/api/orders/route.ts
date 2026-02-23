@@ -106,3 +106,39 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function GET(request: NextRequest) {
+  try {
+    const { user } = await authenticate(request);
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Morate biti prijavljeni da biste videli narudžbine' },
+        { status: 401 }
+      );
+    }
+
+    const orders = await prisma.order.findMany({
+      where: { userId: user.userId },
+      include: {
+        items: true,
+        payment: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: orders,
+      },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    console.error('Get orders error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Došlo je do greške pri učitavanju narudžbina' },
+      { status: 500 }
+    );
+  }
+}

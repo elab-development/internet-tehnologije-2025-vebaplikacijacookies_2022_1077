@@ -26,7 +26,7 @@ export async function trackEvent(
       }),
       keepalive: true, // Važno da se request pošalje čak i ako korisnik napusti stranicu
     });
-  } catch (error) {
+  } catch {
     // Silent fail
   }
 }

@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
  * Helper funkcije za konzistentne API odgovore
  */
 
-export function successResponse(data: any, message?: string, status: number = 200) {
+export function successResponse(data: unknown, message?: string, status: number = 200) {
   return NextResponse.json(
     {
       success: true,
@@ -20,13 +20,13 @@ export function successResponse(data: any, message?: string, status: number = 20
 export function errorResponse(
   error: string,
   status: number = 400,
-  details?: any
+  details?: unknown
 ) {
   return NextResponse.json(
     {
       success: false,
       error,
-      ...(details && { details }),
+      ...(details !== undefined ? { details } : {}),
     },
     { status }
   );
@@ -74,7 +74,7 @@ export function notFoundResponse(resource: string = 'Resurs') {
 }
 
 export function serverErrorResponse(
-  error: any,
+  error: unknown,
   message: string = 'Došlo je do greške na serveru'
 ) {
   console.error('Server error:', error);

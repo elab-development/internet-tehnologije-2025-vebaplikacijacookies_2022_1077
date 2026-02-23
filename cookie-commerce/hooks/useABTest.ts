@@ -30,6 +30,7 @@ export function useABTest(testId: string) {
         const validVariants = test?.variants ?? [];
 
         if (urlOverride && validVariants.includes(urlOverride)) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setVariant(urlOverride);
             setIsReady(true);
             return;

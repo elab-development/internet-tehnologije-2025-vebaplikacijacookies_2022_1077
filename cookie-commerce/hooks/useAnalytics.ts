@@ -23,7 +23,7 @@ export function usePageViewTracking() {
  */
 export function useAnalytics() {
   // Manuelno praćenje događaja
-  const track = (eventType: string, data?: any) => {
+  const track = (eventType: string, data?: Record<string, unknown>) => {
     trackEvent(eventType, data);
   };
 

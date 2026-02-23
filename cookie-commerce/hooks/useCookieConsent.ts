@@ -136,7 +136,7 @@ export function useCookieConsent() {
         console.error('Failed to save consent to database:', error);
       }
     },
-    []
+    [setCookie]
   );
 
   // ==========================================

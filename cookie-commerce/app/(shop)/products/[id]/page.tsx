@@ -7,12 +7,22 @@ import { RecentlyViewed } from '@/components/products/RecentlyViewed';
 import { ProductReviews } from '@/components/products/ProductReviews';
 import { useCart } from '@/hooks/useCart';
 
+interface ProductDetails {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+  imageUrl?: string;
+  stock: number;
+  category?: { name: string };
+}
+
 export default function ProductDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const { addItem } = useCart();
 
-  const [product, setProduct] = useState<any>(null);
+  const [product, setProduct] = useState<ProductDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [quantity, setQuantity] = useState(1);
@@ -35,7 +45,7 @@ export default function ProductDetailsPage() {
       } else {
         setError(data.error || 'Proizvod nije pronađen');
       }
-    } catch (err) {
+    } catch {
       setError('Došlo je do greške pri učitavanju');
     } finally {
       setIsLoading(false);
@@ -100,6 +110,7 @@ export default function ProductDetailsPage() {
           {/* Slika */}
           <div className="bg-gray-100 rounded-2xl aspect-square flex items-center justify-center overflow-hidden">
             {product.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={product.imageUrl}
                 alt={product.name}

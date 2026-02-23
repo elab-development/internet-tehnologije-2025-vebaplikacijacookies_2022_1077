@@ -27,7 +27,7 @@ const ROLE_LABELS: Record<string, { label: string; color: string }> = {
 export default function AdminUsersPage() {
     const { user, isLoading: authLoading } = useAuth();
     const [users, setUsers] = useState<AdminUser[]>([]);
-    const [roleCounts, setRoleCounts] = useState<any>({});
+    const [roleCounts, setRoleCounts] = useState<Record<string, number>>({});
     const [isLoading, setIsLoading] = useState(true);
 
     const isAdm = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';

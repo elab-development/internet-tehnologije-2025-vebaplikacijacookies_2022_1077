@@ -69,9 +69,9 @@ export default function AdminDashboardPage() {
 
         const data = await response.json();
         setStats(data.data);
-      } catch (err: any) {
+      } catch (err) {
         console.error('Fetch stats error:', err);
-        setError(err.message || 'Došlo je do greške');
+        setError((err as Error).message || 'Došlo je do greške');
       } finally {
         setIsLoading(false);
       }
@@ -94,13 +94,7 @@ export default function AdminDashboardPage() {
     }).format(price);
   };
 
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('sr-RS', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  };
+
 
   // ==========================================
   // LOADING STATE

@@ -64,7 +64,7 @@ export default function ProductsPage() {
   const handleSortChange = (sortBy: string) => {
     const [field, order] = sortBy.split('-');
     applyFilters({
-      sortBy: field as any,
+      sortBy: field as 'createdAt' | 'price' | 'name',
       sortOrder: order as 'asc' | 'desc',
     });
   };

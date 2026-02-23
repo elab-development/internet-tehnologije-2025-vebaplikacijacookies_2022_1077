@@ -91,9 +91,9 @@ export function useProducts(initialFilters: ProductFilters = {}) {
 
       setProducts(data.data);
       setPagination(data.pagination);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Fetch products error:', err);
-      setError(err.message || 'Došlo je do greške');
+      setError((err as Error).message || 'Došlo je do greške');
     } finally {
       setIsLoading(false);
     }
