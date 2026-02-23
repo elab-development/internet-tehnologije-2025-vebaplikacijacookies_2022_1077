@@ -4,6 +4,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
+import { useAnalytics } from '@/hooks/useAnalytics';
+
 export interface CartItem {
     productId: string;
     quantity: number;
@@ -45,6 +47,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const [cart, setCart] = useState<Cart | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { track } = useAnalytics();
 
     const fetchCart = useCallback(async () => {
         setIsLoading(true);
@@ -95,6 +98,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             }
 
             await fetchCart();
+            track('add_to_cart', { productId, quantity });
             return { success: true, message: data.message };
         } catch (err: any) {
             console.error('Add to cart error:', err);
