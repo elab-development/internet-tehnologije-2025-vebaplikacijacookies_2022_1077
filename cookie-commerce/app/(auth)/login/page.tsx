@@ -99,7 +99,7 @@ function LoginForm() {
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    
+
     // Očisti grešku za to polje
     if (field in errors) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
@@ -210,13 +210,6 @@ function LoginForm() {
                   />
                   <span className="text-sm text-gray-700">Zapamti me</span>
                 </label>
-
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
-                >
-                  Zaboravili ste lozinku?
-                </Link>
               </div>
             </CardBody>
 
