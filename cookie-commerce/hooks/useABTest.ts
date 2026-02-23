@@ -20,9 +20,14 @@ export function useABTest(testId: string) {
 
     useEffect(() => {
         const v = getVariant(testId);
-        setVariant(v);
-        setIsReady(true);
-    }, [testId]);
+        const timer = setTimeout(() => {
+            if (v !== variant) {
+                setVariant(v);
+            }
+            setIsReady(true);
+        }, 0);
+        return () => clearTimeout(timer);
+    }, [testId, variant]);
 
     const convert = () => {
         trackConversion(testId, variant);

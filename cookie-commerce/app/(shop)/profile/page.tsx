@@ -3,6 +3,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { ProfileForm } from '@/components/profile/ProfileForm';
@@ -377,7 +378,7 @@ function OrdersSection() {
         <div className="text-center py-8 text-gray-500">
           <p className="text-4xl mb-4">📦</p>
           <p>Nemate nijednu narudžbinu.</p>
-          <a href="/products" className="text-blue-600 hover:underline text-sm mt-2 inline-block">Započnite kupovinu</a>
+          <Link href="/products" className="text-blue-600 hover:underline text-sm mt-2 inline-block">Započnite kupovinu</Link>
         </div>
       ) : (
         <div className="space-y-3">

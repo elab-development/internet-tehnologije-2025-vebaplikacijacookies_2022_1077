@@ -31,7 +31,11 @@ export default function AdminAnalyticsPage() {
     const isAdm = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
     useEffect(() => {
-        if (!isAdm) { setIsLoading(false); return; }
+        if (!isAdm) {
+            // Opcioni setTimeout se dodaje ako mora da gazi state odmah da bi rešio problem sa kaskadiranjem
+            setTimeout(() => setIsLoading(false), 0);
+            return;
+        }
         fetch('/api/admin/analytics', { credentials: 'include' })
             .then(r => r.json())
             .then(d => { if (d.success) setData(d.data); })
